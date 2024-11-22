@@ -1,0 +1,22 @@
+# Node.js modules
+node_modules/
+
+# Environment files
+.env
+
+
+
+# OS-specific files
+.DS_Store
+Thumbs.db
+
+# Build directories
+dist/
+build/
+
+# IDE files
+.idea/
+.vscode/
+
+# Other specific files
+coverage/
