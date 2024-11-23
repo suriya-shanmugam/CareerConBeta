@@ -42,3 +42,23 @@ module.exports = {
   createCompany,
   getAllCompanies,
 };
+
+/*
+curl -X POST http://localhost:3000/api/v1/jobs -H "Content-Type: application/json" -d '{
+  "companyId": "67418bc7c9c3fd8d1d406a2d",
+  "postedBy": "67412f011f4c0f5067ddbe20",
+  "title": "Product manager",
+  "description": "Job description here",
+  "requirements": ["Node.js", "MongoDB", "Express"],
+  "location": "Tenkasi, India",
+  "salary": {
+    "min": 70000,
+    "max": 120000,
+    "currency": "INR"
+  },
+  "department": "Engineering",
+  "type": "Full-time",
+  "status": "Active"
+}'
+
+*/

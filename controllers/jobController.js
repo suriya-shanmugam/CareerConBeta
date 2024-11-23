@@ -2,7 +2,13 @@ const Job = require("../models/job");
 
 const getJobs = async (req, res) => {
   try {
-    const jobs = await Job.find().populate('companyId'); // Fetch all jobs
+    const filters = {}; 
+    
+    if (req.query.companyId) {
+      filters.companyId = req.query.companyId;
+    }
+    
+    const jobs = await Job.find(filters).populate('companyId'); // Fetch all jobs
     res.status(200).json(jobs);
   } catch (error) {
     res
