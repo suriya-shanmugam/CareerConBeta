@@ -1,4 +1,22 @@
-let promise = new Promise( (resolve,reject) => {
+obj = {
+    name : "suriya",
+    export : {}
+}
+
+function callme(){
+
+    console.log("called");
+
+}
+
+obj.export.callme = callme;
+console.log(obj);
+
+obj.export =  {callme}
+
+console.log(obj);
+
+/*let promise = new Promise( (resolve,reject) => {
     
     let result = true;
     setTimeout(() => {
@@ -20,4 +38,4 @@ promise.then(result => {
 })
 
 
-console.log("Already vandhutten Inga")
+console.log("Already vandhutten Inga") */
