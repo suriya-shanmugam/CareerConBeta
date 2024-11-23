@@ -1,47 +1,32 @@
-// controllers/recruiterController.js
-const Recruiter = require('../models/recruiter');
+// /controllers/recruiterController.js
+const recruiterService = require("../services/recruiterService");
+const logger = require("../configs/logger");
 
-// Fetch all recruiters
-exports.getAllRecruiters = async (req, res, next) => {
+// Controller to handle creating a recruiter
+const createRecruiter = async (req, res) => {
   try {
-    const recruiters = await Recruiter.find()
-      .populate('userId')    // Populate user details if needed
-      .populate('companyId');  // Populate company details if needed
-    res.status(200).json(recruiters);
+    const recruiterData = req.body;
+    const response = await recruiterService.createRecruiter(recruiterData);
+    res.status(201).json(response);
   } catch (error) {
-    next(error);  // Forward error to the error handler middleware
+    logger.error("Error creating recruiter: " + error.message);
+    res.status(500).json({ status: "error", message: error.message });
   }
 };
 
-// Fetch a recruiter by ID
-exports.getRecruiterById = async (req, res, next) => {
+// Controller to fetch recruiters
+const getRecruiters = async (req, res) => {
   try {
-    const recruiter = await Recruiter.findById(req.params.id)
-      .populate('userId')
-      .populate('companyId');
-    if (!recruiter) {
-      return res.status(404).json({ message: 'Recruiter not found' });
-    }
-    res.status(200).json(recruiter);
+    const query = req.query; // You can add filters if needed
+    const response = await recruiterService.getRecruiters(query);
+    res.status(200).json(response);
   } catch (error) {
-    next(error);
+    logger.error("Error fetching recruiters: " + error.message);
+    res.status(500).json({ status: "error", message: error.message });
   }
 };
 
-// Create a new recruiter
-exports.createRecruiter = async (req, res, next) => {
-  const { userId, companyId } = req.body;
-
-  const recruiter = new Recruiter({
-    userId,
-    companyId,
-    createdAt: new Date(),
-  });
-
-  try {
-    const newRecruiter = await recruiter.save();
-    res.status(201).json(newRecruiter);
-  } catch (error) {
-    next(error);
-  }
+module.exports = {
+  createRecruiter,
+  getRecruiters,
 };
