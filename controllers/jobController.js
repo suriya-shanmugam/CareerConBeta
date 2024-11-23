@@ -1,110 +1,55 @@
-const Job = require("../models/job");
+const jobService = require('../services/jobService');
 
+// Controller to handle getting all jobs
 const getJobs = async (req, res) => {
   try {
-    const filters = {}; 
-    
-    if (req.query.companyId) {
-      filters.companyId = req.query.companyId;
-    }
-    
-    const jobs = await Job.find(filters).populate('companyId'); // Fetch all jobs
+    const filters = req.query.companyId ? { companyId: req.query.companyId } : {};
+    const jobs = await jobService.getJobs(filters);
     res.status(200).json(jobs);
   } catch (error) {
-    res
-      .status(500)
-      .json({ message: "Error fetching jobs", error: error.message });
+    res.status(500).json({ message: error.message });
   }
 };
 
-
+// Controller to handle getting a job by ID
 const getJobById = async (req, res) => {
   try {
-    const job = await Job.findById(req.params.id)
-      .populate('companyId')
-      .populate('postedBy');
-    if (!job) {
-      return res.status(404).json({ message: 'Job not found' });
-    }
+    const job = await jobService.getJobById(req.params.id);
     res.status(200).json(job);
   } catch (error) {
-    next(error);
+    res.status(404).json({ message: error.message });
   }
 };
 
-const createJobs = async (req, res) => {
-  const {
-    companyId,
-    postedBy,
-    title,
-    description,
-    requirements,
-    location,
-    salary,
-    department,
-    type,
-    status,
-  } = req.body;
-
-  const job = new Job({
-    companyId,
-    postedBy,
-    title,
-    description,
-    requirements,
-    location,
-    salary,
-    department,
-    type,
-    status,
-    createdAt: new Date(),
-    updatedAt: new Date(),
-  });
-
+// Controller to handle creating a job
+const createJob = async (req, res) => {
   try {
-    const newJob = await job.save();
+    const jobData = req.body;
+    const newJob = await jobService.createJob(jobData);
     res.status(201).json(newJob);
   } catch (error) {
-    next(error);
+    res.status(500).json({ message: error.message });
   }
 };
 
+// Controller to handle updating a job
 const updateJobById = async (req, res) => {
   try {
-    const job = await Job.findById(req.params.id);
-    if (!job) {
-      return res.status(404).json({ message: 'Job not found' });
-    }
-
-    // Update job fields if present in the request body
-    job.title = req.body.title ?? job.title;
-    job.description = req.body.description ?? job.description;
-    job.requirements = req.body.requirements ?? job.requirements;
-    job.location = req.body.location ?? job.location;
-    job.salary = req.body.salary ?? job.salary;
-    job.department = req.body.department ?? job.department;
-    job.type = req.body.type ?? job.type;
-    job.status = req.body.status ?? job.status;
-    job.updatedAt = Date.now();
-
-    const updatedJob = await job.save();
+    const updateData = req.body;
+    const updatedJob = await jobService.updateJobById(req.params.id, updateData);
     res.status(200).json(updatedJob);
   } catch (error) {
-    next(error);
+    res.status(404).json({ message: error.message });
   }
 };
-
-
-
-
-
 
 module.exports = {
   getJobs,
   getJobById,
-  createJobs,
+  createJob,
   updateJobById
 };
+
 
 /*
 

@@ -1,12 +1,11 @@
-const Applicant = require('../models/applicant');
+const applicantService = require('../services/applicantService');
 
-// Controller to create a new applicant
+// Controller to handle creating a new applicant
 const createApplicant = async (req, res) => {
-  try {
-    const { userId, resume, phone, address, skills, appliedJobs, followingCompanies } = req.body;
+  const { userId, resume, phone, address, skills, appliedJobs, followingCompanies } = req.body;
 
-    // Create a new Applicant document
-    const newApplicant = new Applicant({
+  try {
+    const newApplicant = await applicantService.createApplicant({
       userId,
       resume,
       phone,
@@ -15,24 +14,16 @@ const createApplicant = async (req, res) => {
       appliedJobs,
       followingCompanies,
     });
-
-    // Save to the database
-    const savedApplicant = await newApplicant.save();
-    res.status(201).json(savedApplicant);
+    res.status(201).json(newApplicant);
   } catch (error) {
     res.status(500).json({ message: 'Error creating applicant', error: error.message });
   }
 };
 
-// Controller to fetch all applicants
+// Controller to handle fetching all applicants
 const getAllApplicants = async (req, res) => {
   try {
-    // Populate `userId`, `appliedJobs`, and `followingCompanies` with referenced data
-    const applicants = await Applicant.find()
-      .populate('userId', 'email firstName lastName') // Populate User data
-      .populate('appliedJobs', 'title location') // Populate Job data
-      .populate('followingCompanies', 'name industry'); // Populate Company data
-
+    const applicants = await applicantService.getAllApplicants();
     res.status(200).json(applicants);
   } catch (error) {
     res.status(500).json({ message: 'Error fetching applicants', error: error.message });
@@ -43,6 +34,7 @@ module.exports = {
   createApplicant,
   getAllApplicants,
 };
+
 
 
 /*

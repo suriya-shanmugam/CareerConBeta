@@ -1,12 +1,11 @@
 const express = require('express');
-const { createApplicant, getAllApplicants } = require('../controllers/applicantController');
-
 const router = express.Router();
+const applicantController = require('../controllers/applicantController');
 
 // Route to create a new applicant
-router.post('/', createApplicant);
+router.post('/', applicantController.createApplicant);
 
-// Route to fetch all applicants
-router.get('/', getAllApplicants);
+// Route to get all applicants
+router.get('/', applicantController.getAllApplicants);
 
 module.exports = router;

@@ -1,37 +1,25 @@
-const Company = require('../models/company');
+const companyService = require('../services/companyService');
 
-// Controller to create a new company
+// Controller to handle creating a new company
 const createCompany = async (req, res) => {
+  const { name, description, industry, location, logo } = req.body;
+
   try {
-    const { name, description, industry, location, logo } = req.body;
-
-    // Check if the company already exists
-    const existingCompany = await Company.findOne({ name });
-    if (existingCompany) {
-      return res.status(400).json({ message: 'Company already exists' });
-    }
-
-    // Create a new Company document
-    const newCompany = new Company({
-      name,
-      description,
-      industry,
-      location,
-      logo,
-    });
-
-    // Save to the database
-    const savedCompany = await newCompany.save();
-    res.status(201).json(savedCompany);
+    const newCompany = await companyService.createCompany({ name, description, industry, location, logo });
+    res.status(201).json(newCompany);
   } catch (error) {
-    res.status(500).json({ message: 'Error creating company', error: error.message });
+    if (error.message === 'Company already exists') {
+      res.status(400).json({ message: error.message });
+    } else {
+      res.status(500).json({ message: 'Error creating company', error: error.message });
+    }
   }
 };
 
-// Controller to fetch all companies
+// Controller to handle fetching all companies
 const getAllCompanies = async (req, res) => {
   try {
-    const companies = await Company.find(); // Fetch all companies
+    const companies = await companyService.getAllCompanies();
     res.status(200).json(companies);
   } catch (error) {
     res.status(500).json({ message: 'Error fetching companies', error: error.message });
@@ -40,8 +28,9 @@ const getAllCompanies = async (req, res) => {
 
 module.exports = {
   createCompany,
-  getAllCompanies,
+  getAllCompanies
 };
+
 
 /*
 curl -X POST http://localhost:3000/api/v1/jobs -H "Content-Type: application/json" -d '{
