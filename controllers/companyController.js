@@ -1,11 +1,12 @@
 const companyService = require('../services/companyService');
+const {formatResponse} = require('../utils/helper')
 
 // Controller to handle creating a new company
 const createCompany = async (req, res) => {
-  const { name, description, industry, location, logo } = req.body;
+  const { name, description, industry, location, logo, website } = req.body;
 
   try {
-    const newCompany = await companyService.createCompany({ name, description, industry, location, logo });
+    const newCompany = await companyService.createCompany({ name, description, industry, location, logo , website});
     res.status(201).json(newCompany);
   } catch (error) {
     if (error.message === 'Company already exists') {
@@ -20,7 +21,8 @@ const createCompany = async (req, res) => {
 const getAllCompanies = async (req, res) => {
   try {
     const companies = await companyService.getAllCompanies();
-    res.status(200).json(companies);
+    const response = formatResponse('success', 'Companies fetched successfully', companies)
+    res.status(200).json(response);
   } catch (error) {
     res.status(500).json({ message: 'Error fetching companies', error: error.message });
   }
@@ -33,21 +35,17 @@ module.exports = {
 
 
 /*
-curl -X POST http://localhost:3000/api/v1/jobs -H "Content-Type: application/json" -d '{
-  "companyId": "67418bc7c9c3fd8d1d406a2d",
-  "postedBy": "67412f011f4c0f5067ddbe20",
-  "title": "Product manager",
-  "description": "Job description here",
-  "requirements": ["Node.js", "MongoDB", "Express"],
-  "location": "Tenkasi, India",
-  "salary": {
-    "min": 70000,
-    "max": 120000,
-    "currency": "INR"
-  },
-  "department": "Engineering",
-  "type": "Full-time",
-  "status": "Active"
-}'
+curl -X POST http://your-api-url.com/companies \
+  -H "Content-Type: application/json" \
+  -d '{
+    "name": "Tech Innovators Inc.",
+    "description": "A leading company in tech innovation.",
+    "industry": "Technology",
+    "location": "San Francisco, CA",
+    "followers": 1200,
+    "createdAt": "2024-11-25T00:00:00Z",
+    "website": "https://techinnovators.com"
+  }'
+
 
 */

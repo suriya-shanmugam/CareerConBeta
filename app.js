@@ -1,4 +1,5 @@
 const express = require("express");
+const cors = require('cors');
 const connectDB = require("./configs/db");
 const jobRoutes = require("./routes/jobRoutes");
 const userRoutes = require('./routes/userRoutes');
@@ -10,6 +11,10 @@ connectDB();
 const app = express();
 const PORT = process.env.PORT || 3000;
 
+const corsOptions = {
+  origin: 'http://localhost:3001',
+};
+app.use(cors(corsOptions));
 
 // Sample middleware function for logging and authentication
 app.use((req, res, next) => {

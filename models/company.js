@@ -26,6 +26,10 @@ const companySchema = new mongoose.Schema({
   createdAt: {
     type: Date,
     default: Date.now,
+  },
+  website: {
+    type: String,
+    required: true
   }
 });
 

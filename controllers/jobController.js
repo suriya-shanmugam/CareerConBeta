@@ -1,11 +1,13 @@
 const jobService = require('../services/jobService');
+const {formatResponse} = require('../utils/helper')
 
 // Controller to handle getting all jobs
 const getJobs = async (req, res) => {
   try {
     const filters = req.query.companyId ? { companyId: req.query.companyId } : {};
     const jobs = await jobService.getJobs(filters);
-    res.status(200).json(jobs);
+    const response = formatResponse('success', 'Jobs fetched successfully', jobs)
+    res.status(200).json(response);
   } catch (error) {
     res.status(500).json({ message: error.message });
   }
