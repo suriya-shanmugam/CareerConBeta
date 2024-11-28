@@ -6,6 +6,8 @@ const userRoutes = require('./routes/userRoutes');
 const companyRoutes = require('./routes/companyRoutes');
 const applicantRoutes = require('./routes/applicantRoutes');
 const recruiterRoutes = require('./routes/recruiterRoutes');
+const companyConvoRoutes = require("./routes/companyConvoRoutes");
+const applicantConvoRoutes = require('./routes/applicantConvoRoutes');
 
 connectDB();
 const app = express();
@@ -33,6 +35,9 @@ app.use('/api/v1/users', userRoutes);
 app.use('/api/v1/companies', companyRoutes);
 app.use('/api/v1/applicants', applicantRoutes);
 app.use('/api/v1/recruiters', recruiterRoutes);
+
+app.use("/api/v1/companies/:id/conversations", companyConvoRoutes);
+app.use('/api/v1/applicants/:id/conversations', applicantConvoRoutes);
 
 
 app.use((err, req, res, next) => {
