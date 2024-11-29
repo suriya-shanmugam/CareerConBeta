@@ -1,21 +1,15 @@
-const User = require('../models/user');
-const bcrypt = require('bcryptjs');
+const User = require("../models/user");
+const applicantService = require("../services/applicantService");
+const companyService = require("../services/companyService");
+const recruiterService = require("../services/recruiterService");
 
 // Service to create a new user
 const createUser = async (userData) => {
-  const { email, password, role, firstName, lastName } = userData;
+  const { email, passwordHash, role, firstName, lastName, additionalData } =
+    userData;
 
-  // Check if the user already exists
-  const existingUser = await User.findOne({ email });
-  if (existingUser) {
-    throw new Error('User already exists');
-  }
-
-  // Hash the password
-  const passwordHash = await bcrypt.hash(password, 10);
-
-  // Create a new user
-  const newUser = new User({
+  // Create the base user
+  const user = await User.create({
     email,
     passwordHash,
     role,
@@ -23,11 +17,26 @@ const createUser = async (userData) => {
     lastName,
   });
 
-  try {
-    return await newUser.save();
-  } catch (error) {
-    throw new Error('Error creating user: ' + error.message);
+  if (role === "Applicant") {
+    await applicantService.createApplicant(user._id,additionalData);
+  } else if (role === "Recruiter") {
+    
+    const { companyDetails } = additionalData;
+
+    // Recruiter-specific validations
+    if (!companyDetails || !companyDetails.name || !companyDetails.industry || !companyDetails.location || !companyDetails.website) {
+      throw new Error('Missing required company details: name, industry, location, or website.');
+    }
+
+    // Create or fetch the company
+    const company = await companyService.createCompany(companyDetails);
+    await recruiterService.createRecruiter({
+      userId: user._id,
+      companyId: company._id,
+    });
   }
+
+  return user;
 };
 
 // Service to fetch all users
@@ -35,7 +44,7 @@ const getAllUsers = async () => {
   try {
     return await User.find();
   } catch (error) {
-    throw new Error('Error fetching users: ' + error.message);
+    throw new Error("Error fetching users: " + error.message);
   }
 };
 

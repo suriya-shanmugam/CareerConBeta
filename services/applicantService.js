@@ -1,11 +1,12 @@
 const Applicant = require('../models/applicant');
 
 // Service to create a new applicant
-const createApplicant = async (applicantData) => {
+const createApplicant = async (user_id, applicantData) => {
   // Create the new applicant document
   const newApplicant = new Applicant({
     ...applicantData,
     createdAt: new Date(),
+    userId : user_id
   });
 
   try {

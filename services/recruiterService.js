@@ -6,7 +6,12 @@ class RecruiterService {
   // Create a new recruiter
   async createRecruiter(recruiterData) {
     try {
-      const newRecruiter = new Recruiter(recruiterData);
+      //const newRecruiter = new Recruiter(recruiterData);
+      
+      const newRecruiter = new Recruiter({
+        ...recruiterData,
+        createdAt: new Date(),
+      });
       await newRecruiter.save();
       return formatResponse('success', 'Recruiter created successfully', newRecruiter);
     } catch (error) {

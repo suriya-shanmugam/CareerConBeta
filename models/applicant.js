@@ -9,21 +9,18 @@ const applicantSchema = new Schema({
     required: true,
   },
   resume: {
-    type: String, // Base64 encoded file
-    required: true,
+    type: String // Base64 encoded file
+    
   },
   phone: {
     type: String,
-    required: true,
     match: [/^\d{3}-\d{3}-\d{4}$/, 'Please use a valid phone number format: XXX-XXX-XXXX']
   },
   address: {
-    type: String,
-    required: true,
+    type: String
   },
   skills: {
     type: [String], // Array of skills
-    required: true,
   },
   appliedJobs: [{
     type: Schema.Types.ObjectId,
@@ -36,6 +33,10 @@ const applicantSchema = new Schema({
   followingCompanies: [{
     type: Schema.Types.ObjectId,
     ref: 'Company', // Reference to the Company collection
+  }],
+  followingApplicants: [{
+    type: Schema.Types.ObjectId,
+    ref: 'Applicant', // Reference to the Applucant collection
   }],
 });
 
