@@ -1,4 +1,5 @@
 const Conversation = require('../models/conversation');
+const Applicant = require('../models/applicant');
 
 // Service to create a new conversation
 const createConversation = async (conversationData) => {
@@ -22,6 +23,33 @@ const getAllConversations = async (filters) => {
     throw new Error('Error fetching conversations: ' + error.message);
   }
 };
+
+// Service to get conversations for an applicant based on followed companies
+const getConversationsByApplicant = async (applicantId) => {
+  
+  try {
+    // Step 1: Find the applicant by their ID
+    const applicant = await Applicant.findById(applicantId).populate('followingCompanies');
+    
+    if (!applicant) {
+      throw new Error('Applicant not found');
+    }
+
+    // Step 2: Get the list of company IDs the applicant follows
+    const followedCompanyIds = applicant.followingCompanies.map(company => company._id);
+
+    // Step 3: Retrieve conversations where the createdByType is 'Company' and userRef matches a followed company
+    const conversations = await Conversation.find({
+      createdBy: 'Company',
+      userRef: { $in: followedCompanyIds }
+    }).populate('userRef');  // Optionally populate company details
+
+    return conversations;
+  } catch (error) {
+    throw new Error('Error fetching conversations: ' + error.message);
+  }
+};
+
 
 // Service to update a conversation by ID
 const updateConversationById = async (conversationId, updateData) => {
@@ -58,21 +86,26 @@ const deleteConversationById = async (conversationId) => {
 };
 
 // Service to add a like to a conversation
-const updateLikes = async (conversationId, userId) => {
+const updateLikes = async (conversationId, userId, createdByType) => {
   try {
+    console.log(conversationId);
+    console.log(userId);
+    console.log(createdByType);
     const conversation = await Conversation.findById(conversationId);
     if (!conversation) {
       throw new Error('Conversation not found');
     }
 
     // Check if the user has already liked the conversation
-    const existingLike = conversation.likes.find(like => like.userId.toString() === userId.toString());
+    const existingLike = conversation.likes.find(
+      (like) => like.userRef.toString() === userId.toString() && like.createdByType === createdByType
+    );
     if (existingLike) {
       throw new Error('User has already liked this conversation');
     }
 
     // Add the like
-    conversation.likes.push({ userId, createdAt: new Date() });
+    conversation.likes.push({ userRef: userId, createdByType, createdAt: new Date() });
     return await conversation.save();
   } catch (error) {
     throw new Error('Error adding like: ' + error.message);
@@ -80,7 +113,7 @@ const updateLikes = async (conversationId, userId) => {
 };
 
 // Service to remove a like from a conversation
-const removeLike = async (conversationId, userId) => {
+const removeLike = async (conversationId, userId, createdByType) => {
   try {
     const conversation = await Conversation.findById(conversationId);
     if (!conversation) {
@@ -88,7 +121,9 @@ const removeLike = async (conversationId, userId) => {
     }
 
     // Find the index of the like to remove
-    const likeIndex = conversation.likes.findIndex(like => like.userId.toString() === userId.toString());
+    const likeIndex = conversation.likes.findIndex(
+      (like) => like.userRef.toString() === userId.toString() && like.createdByType === createdByType
+    );
     if (likeIndex === -1) {
       throw new Error('Like not found');
     }
@@ -102,7 +137,7 @@ const removeLike = async (conversationId, userId) => {
 };
 
 // Service to add a comment to a conversation
-const updateComments = async (conversationId, userName, content) => {
+const updateComments = async (conversationId, userId, createdByType, content) => {
   try {
     const conversation = await Conversation.findById(conversationId);
     if (!conversation) {
@@ -111,7 +146,8 @@ const updateComments = async (conversationId, userName, content) => {
 
     // Add the comment
     conversation.comments.push({
-      userName,
+      userRef: userId,
+      createdByType,
       content,
       createdAt: new Date(),
     });
@@ -131,7 +167,9 @@ const removeComment = async (conversationId, commentId) => {
     }
 
     // Find the index of the comment to remove
-    const commentIndex = conversation.comments.findIndex(comment => comment._id.toString() === commentId.toString());
+    const commentIndex = conversation.comments.findIndex(
+      (comment) => comment._id.toString() === commentId.toString()
+    );
     if (commentIndex === -1) {
       throw new Error('Comment not found');
     }
@@ -198,4 +236,5 @@ module.exports = {
   fetchAllComments,
   fetchLikesCount,
   fetchCommentsCount,
+  getConversationsByApplicant
 };

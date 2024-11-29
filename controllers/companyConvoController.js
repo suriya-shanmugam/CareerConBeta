@@ -4,13 +4,17 @@ const { formatResponse } = require('../utils/helper');
 // Controller: Create a new conversation
 const createConversation = async (req, res) => {
   try {
-    const { title, content, userRef } = req.body;
+    const { title, content } = req.body;
+    //console.log(req.params  )
+    const { companyid } = req.params;
+    
     const conversationData = {
       title,
       content,
-      createdBy: 'Company',
-      userRef,
+      createdBy: 'Company', // assuming the creator is always an 'Applicant' for this example
+      userRef : companyid,
     };
+
 
     const conversation = await conversationService.createConversation(conversationData);
     const response = formatResponse('success', 'Conversation created successfully', conversation);
@@ -23,7 +27,9 @@ const createConversation = async (req, res) => {
 // Controller: Get all conversations for companies
 const getConversations = async (req, res) => {
   try {
-    const filters = { createdBy: 'Company' };
+    
+    const { companyid } = req.params; // Get companyid from the route parameter
+    const filters = { userRef: companyid }; // Filter conversations by companyid
     const conversations = await conversationService.getAllConversations(filters);
     const response = formatResponse('success', 'Conversations fetched successfully', conversations);
     res.status(200).json(response);
