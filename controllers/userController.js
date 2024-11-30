@@ -1,4 +1,6 @@
+const Recruiter = require("../models/recruiter");
 const userService = require("../services/userService");
+const jwt = require("jsonwebtoken");
 
 // Controller to handle creating a new user
 const createUser = async (req, res) => {
@@ -18,7 +20,50 @@ const createUser = async (req, res) => {
       lastName,
       additionalData,
     });
-    res.status(201).json(user);
+
+    // Generate a token
+    const token = jwt.sign(
+      { userId: user._id, role: user.role },
+      process.env.JWT_SECRET,
+      { expiresIn: "1h" }
+    );
+
+    // Prepare the basic user info
+    const userResponse = {
+      id: user._id,
+      email: user.email,
+      role: user.role,
+      firstName: user.firstName,
+      lastName: user.lastName,
+    };
+
+    // If the user is a Recruiter, fetch their company details
+    if (
+      role === "Recruiter" &&
+      additionalData &&
+      additionalData.companyDetails
+    ) {
+      const recruiter = await Recruiter.findOne({ userId: user._id }).populate(
+        "companyId"
+      );
+      if (!recruiter || !recruiter.companyId) {
+        throw new Error("Recruiter does not have an associated company.");
+      }
+
+      const company = recruiter.companyId; // Already populated
+      userResponse.companyId = company._id;
+      userResponse.companyName = company.name;
+      userResponse.companyDescription = company.description;
+      userResponse.companyIndustry = company.industry;
+      userResponse.companyLocation = company.location;
+      userResponse.companyWebsite = company.website;
+    }
+
+    // Send the response with user data and token
+    res.status(201).json({
+      user: userResponse,
+      token,
+    });
   } catch (error) {
     if (error.message === "User already exists") {
       res.status(400).json({ message: error.message });

@@ -1,4 +1,7 @@
+const jwt = require("jsonwebtoken");
+
 const User = require("../models/user");
+
 const applicantService = require("../services/applicantService");
 const companyService = require("../services/companyService");
 const recruiterService = require("../services/recruiterService");
@@ -48,7 +51,30 @@ const getAllUsers = async () => {
   }
 };
 
+// Service to sign in user (generate JWT)
+const signInUser = async (email, password) => {
+  const user = await User.findOne({ email });
+  if (!user) {
+    throw new Error('User not found');
+  }
+
+  // Check if password matches
+  const isPasswordCorrect = await user.matchPassword(password);
+  if (!isPasswordCorrect) {
+    throw new Error('Invalid credentials');
+  }
+
+  console.log("matched");
+  // Generate JWT token
+  const token = jwt.sign({ userId: user._id, role: user.role }, process.env.JWT_SECRET, { expiresIn: '1h' });
+  
+  return { user, token };
+};
+
 module.exports = {
   createUser,
   getAllUsers,
+  signInUser
 };
+
+
