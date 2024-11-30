@@ -19,6 +19,9 @@ router.post("/", applicantController.createApplicant);
 // Route to get all applicants
 router.get("/", applicantController.getAllApplicants);
 
+// Route to follow  applicant
+router.post('/:applicantId/follow', applicantController.followApplicant);
+
 // Route to create a new conversation
 router.post("/:applicantsid/conversations", createConversation);
 

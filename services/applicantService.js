@@ -28,7 +28,43 @@ const getAllApplicants = async () => {
   }
 };
 
+
+// Follow another applicant
+const followApplicant = async (applicantId, targetApplicantId) => {
+  try {
+    // Ensure the applicant exists
+    const applicant = await Applicant.findById(applicantId);
+    if (!applicant) {
+      throw new Error('Applicant not found');
+    }
+
+    // Ensure the target applicant exists
+    const targetApplicant = await Applicant.findById(targetApplicantId);
+    if (!targetApplicant) {
+      throw new Error('Target applicant not found');
+    }
+
+    // Check if the applicant is already following the target applicant
+    if (applicant.followingApplicants.includes(targetApplicantId)) {
+      throw new Error('You are already following this applicant');
+    }
+
+    // Add the target applicant to the applicant's followingApplicants array
+    applicant.followingApplicants.push(targetApplicantId);
+
+    // Save the updated applicant
+    await applicant.save();
+
+    return { message: 'Applicant followed successfully', applicant };
+  } catch (error) {
+    throw new Error('Error following applicant: ' + error.message);
+  }
+};
+
+
+
 module.exports = {
   createApplicant,
   getAllApplicants,
+  followApplicant
 };

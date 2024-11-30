@@ -67,6 +67,16 @@ curl -X POST http://localhost:3000/api/v1/users -H "Content-Type: application/js
 }'
 
 
+curl -X POST http://localhost:3000/api/v1/users -H "Content-Type: application/json" -d '{
+  "email": "willian@example.com",
+  "passwordHash": "hashedpassword123",
+  "role": "Applicant",
+  "firstName": "Jane",
+  "lastName": "Smith"
+  }'
+
+
+
 */
 
 /*

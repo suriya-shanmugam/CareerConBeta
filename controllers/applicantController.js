@@ -1,8 +1,16 @@
-const applicantService = require('../services/applicantService');
+const applicantService = require("../services/applicantService");
 
 // Controller to handle creating a new applicant
 const createApplicant = async (req, res) => {
-  const { userId, resume, phone, address, skills, appliedJobs, followingCompanies } = req.body;
+  const {
+    userId,
+    resume,
+    phone,
+    address,
+    skills,
+    appliedJobs,
+    followingCompanies,
+  } = req.body;
 
   try {
     const newApplicant = await applicantService.createApplicant({
@@ -16,7 +24,9 @@ const createApplicant = async (req, res) => {
     });
     res.status(201).json(newApplicant);
   } catch (error) {
-    res.status(500).json({ message: 'Error creating applicant', error: error.message });
+    res
+      .status(500)
+      .json({ message: "Error creating applicant", error: error.message });
   }
 };
 
@@ -26,16 +36,40 @@ const getAllApplicants = async (req, res) => {
     const applicants = await applicantService.getAllApplicants();
     res.status(200).json(applicants);
   } catch (error) {
-    res.status(500).json({ message: 'Error fetching applicants', error: error.message });
+    res
+      .status(500)
+      .json({ message: "Error fetching applicants", error: error.message });
+  }
+};
+
+
+
+const followApplicant = async (req, res) => {
+  
+  const { targetApplicantId } = req.body;
+  const { applicantId } = req.params;
+  if (!applicantId || !targetApplicantId) {
+    return res
+      .status(400)
+      .json({ message: "Applicant ID and Target Applicant ID are required" });
+  }
+
+  try {
+    const result = await applicantService.followApplicant(
+      applicantId,
+      targetApplicantId
+    );
+    res.status(200).json(result);
+  } catch (error) {
+    res.status(500).json({ message: error.message });
   }
 };
 
 module.exports = {
   createApplicant,
   getAllApplicants,
+  followApplicant
 };
-
-
 
 /*
 
