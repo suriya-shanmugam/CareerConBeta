@@ -1,4 +1,5 @@
 const Job = require('../models/job');
+const mongoose = require('mongoose');
 
 // Service to get all jobs with optional filtering by companyId
 const getJobs = async (filters) => {
@@ -103,10 +104,31 @@ const updateJobById = async (jobId, updateData) => {
   }
 };
 
+const getJobsByCompanyId = async (companyId) => {
+  try {
+    // Validate the companyId (ensure it's a valid ObjectId)
+    if (!companyId || !mongoose.Types.ObjectId.isValid(companyId)) {
+      throw new Error('Invalid company ID.');
+    }
+
+    // Query the Job model to find jobs posted by the given companyId
+    const jobs = await Job.find({ companyId })
+      .populate('companyId', 'name location industry') // Optionally populate company details
+      .populate('postedBy', 'name email') // Optionally populate recruiter details
+      .sort({ createdAt: -1 }); // Optional: Sort jobs by creation date (newest first)
+
+    return jobs;
+  } catch (error) {
+    console.error('Error fetching jobs by company ID:', error.message);
+    throw error; // You can handle this error in your route/controller
+  }
+};
+
 module.exports = {
   getJobs,
   getJobById,
   getJobsByCompanies,
+  getJobsByCompanyId,
   createJob,
   updateJobById
 };

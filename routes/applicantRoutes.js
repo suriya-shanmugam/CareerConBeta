@@ -19,8 +19,16 @@ router.post("/", applicantController.createApplicant);
 // Route to get all applicants
 router.get("/", applicantController.getAllApplicants);
 
+
+// Route to get applicants for a specific applicant (including isFollowing status)
+router.get("/:applicantId/allapplicants", applicantController.getApplicantsForApplicant);
+// Route to get all jobs details with user info
+router.get("/:applicantId/companies", applicantController.getCompaniesForApplicant);
+
 // Route to follow  applicant
-router.post('/:applicantId/follow', applicantController.followApplicant);
+router.post('/:applicantId/follow/:targetapplicantId', applicantController.followApplicant);
+// Route to unfollow an applicant
+router.post('/:applicantId/unfollow/:targetapplicantId', applicantController.unfollowApplicant);
 
 // Route to create a new conversation
 router.post("/:applicantsid/conversations", createConversation);

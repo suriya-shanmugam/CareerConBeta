@@ -13,8 +13,16 @@ router.post('/', companyController.createCompany);
 // Route to get all companies
 router.get('/', companyController.getAllCompanies);
 
+router.get('/:companyid', companyController.getCompanyById);
+
+router.post('/:companyid/jobs', companyController.createJob);
+
+router.get('/:companyId/jobs', companyController.getCompanyJobs);
+
 // Route to get follow company
 router.post('/:companyid/follow', companyController.followCompany);
+
+router.post('/:companyid/unfollow', companyController.unfollowCompany);
 
 
 // Route to create a new conversation
