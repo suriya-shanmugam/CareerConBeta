@@ -2,6 +2,10 @@ const Recruiter = require("../models/recruiter");
 const userService = require("../services/userService");
 const jwt = require("jsonwebtoken");
 
+const { companyCreatedEvent } = require('../events/companyCreatedEvent').default;
+const {publishEvent} = require('../utils/rabbitmqService')
+
+
 // Controller to handle creating a new user
 const createUser = async (req, res) => {
   try {
@@ -57,7 +61,12 @@ const createUser = async (req, res) => {
       userResponse.companyIndustry = company.industry;
       userResponse.companyLocation = company.location;
       userResponse.companyWebsite = company.website;
+      
+      const companyEvent = companyCreatedEvent(company._id,company.name);
+      publishEvent(companyEvent);
     }
+
+    
 
     // Send the response with user data and token
     res.status(201).json({

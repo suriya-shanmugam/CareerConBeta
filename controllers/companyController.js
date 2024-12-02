@@ -1,5 +1,11 @@
 const companyService = require('../services/companyService');
+//const rabbitMQService = require('../services/rabbitmqService');
+
+const { jobPostedEvent } = require('../events/jobPostedEvent').default;
+const { companyFollowedEvent } = require('../events/companyFollowedEvent').default;
+
 const {formatResponse} = require('../utils/helper')
+const {publishEvent} = require('../utils/rabbitmqService')
 
 // Controller to handle creating a new company
 const createCompany = async (req, res) => {
@@ -24,6 +30,18 @@ const createJob = async (req, res) => {
 
   try {
     const newJob = await companyService.createJob(companyid, jobData);
+    console.log(newJob);
+    
+    
+    
+    /*const jobTitle = newJob.title;
+    const linkURL =  "https://zoho.com";
+    const company = newJob.title;
+    await rabbitMQService.publishJob({ company, jobTitle, linkURL});*/
+
+    const jobEvent = jobPostedEvent(companyid, newJob.title,"http://chatgpt.com");
+    publishEvent(jobEvent);
+
     res.status(201).json(formatResponse('Job created successfully'));
   } catch (error) {
     if (error.message === 'Company not found' || error.message === 'Recruiter not found') {
@@ -76,6 +94,8 @@ const followCompany = async (req, res) => {
 
   try {
     const result = await companyService.followCompany(applicantId, companyid);
+    const followEvent = companyFollowedEvent(companyid,applicantId );
+    publishEvent(followEvent);
     res.status(200).json(result);
   } catch (error) {
     res.status(500).json({ message: error.message });
