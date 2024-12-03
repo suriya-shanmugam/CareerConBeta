@@ -1,4 +1,5 @@
 const Recruiter = require("../models/recruiter");
+const Applicant = require("../models/applicant");
 const userService = require("../services/userService");
 const jwt = require("jsonwebtoken");
 
@@ -33,14 +34,20 @@ const createUser = async (req, res) => {
     );
 
     // Prepare the basic user info
-    const userResponse = {
+    /*const userResponse = {
       id: user._id,
       email: user.email,
       role: user.role,
       firstName: user.firstName,
       lastName: user.lastName,
-    };
+    };*/
 
+    const userResponse = {
+      email: user.email,
+      role: user.role,
+      firstName: user.firstName,
+      lastName: user.lastName,
+    };
     // If the user is a Recruiter, fetch their company details
     if (
       role === "Recruiter" &&
@@ -53,7 +60,7 @@ const createUser = async (req, res) => {
       if (!recruiter || !recruiter.companyId) {
         throw new Error("Recruiter does not have an associated company.");
       }
-
+      userResponse.id = recruiter._id;
       const company = recruiter.companyId; // Already populated
       userResponse.companyId = company._id;
       userResponse.companyName = company.name;
@@ -64,6 +71,9 @@ const createUser = async (req, res) => {
       
       const companyEvent = companyCreatedEvent(company._id,company.name);
       publishEvent(companyEvent);
+    }else if (role === "Applicant") {
+      const applicant = await Applicant.findOne({ userId: user._id });
+      userResponse.id = applicant._id;
     }
 
     
