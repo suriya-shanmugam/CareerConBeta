@@ -31,6 +31,18 @@ const getAllApplicants = async () => {
   }
 };
 
+const getApplicantById = async (applicantId) => {
+  try {
+    return await Applicant.findOne({ _id: applicantId }) // Filter by applicant's ID
+      .populate('userId', 'email firstName lastName') // Populate user data
+      .populate('appliedJobs', 'title location') // Populate job data
+      .populate('followingCompanies', 'name industry'); // Populate company data
+  } catch (error) {
+    throw new Error('Error fetching applicant: ' + error.message);
+  }
+};
+
+
 
 // Follow another applicant
 const followApplicant = async (applicantId, targetApplicantId) => {
@@ -150,6 +162,7 @@ const getCompaniesForApplicant = async (applicantId) => {
 module.exports = {
   createApplicant,
   getAllApplicants,
+  getApplicantById,
   getCompaniesForApplicant,
   getApplicantsForApplicant,
   followApplicant,

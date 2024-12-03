@@ -19,6 +19,9 @@ router.post("/", applicantController.createApplicant);
 // Route to get all applicants
 router.get("/", applicantController.getAllApplicants);
 
+// Route to get one applicant
+router.get("/:applicantId", applicantController.getApplicant);
+
 
 // Route to get applicants for a specific applicant (including isFollowing status)
 router.get("/:applicantId/allapplicants", applicantController.getApplicantsForApplicant);

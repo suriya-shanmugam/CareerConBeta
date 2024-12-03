@@ -1,4 +1,5 @@
 const applicantService = require("../services/applicantService");
+const {formatResponse} = require('../utils/helper')
 
 // Controller to handle creating a new applicant
 const createApplicant = async (req, res) => {
@@ -35,6 +36,21 @@ const getAllApplicants = async (req, res) => {
   try {
     const applicants = await applicantService.getAllApplicants();
     res.status(200).json(applicants);
+  } catch (error) {
+    res
+      .status(500)
+      .json({ message: "Error fetching applicants", error: error.message });
+  }
+};
+
+
+// Controller to handle fetching all applicants
+const getApplicant = async (req, res) => {
+  try {
+    const { applicantId } = req.params;
+    const applicant = await applicantService.getApplicantById(applicantId);
+    const response = formatResponse('success', 'Applicants fetched successfully', applicant)
+    res.status(200).json(response);
   } catch (error) {
     res
       .status(500)
@@ -93,7 +109,8 @@ const getApplicantsForApplicant = async (req, res) => {
 
   try {
     const applicants = await applicantService.getApplicantsForApplicant(applicantId);
-    res.status(200).json(applicants);
+    const response = formatResponse('success', 'Applicants fetched successfully', applicants)
+    res.status(200).json(response);
   } catch (error) {
     res.status(500).json({ message: "Error fetching applicants", error: error.message });
   }
@@ -106,7 +123,8 @@ const getCompaniesForApplicant = async (req, res) => {
 
   try {
     const companies = await applicantService.getCompaniesForApplicant(applicantId);
-    res.status(200).json(companies);
+    const response = formatResponse('success', 'Companies fetched successfully', companies)
+    res.status(200).json(response);
   } catch (error) {
     res.status(500).json({ message: "Error fetching companies", error: error.message });
   }
@@ -115,6 +133,7 @@ const getCompaniesForApplicant = async (req, res) => {
 module.exports = {
   createApplicant,
   getAllApplicants,
+  getApplicant,
   getCompaniesForApplicant,
   getApplicantsForApplicant,
   followApplicant,
