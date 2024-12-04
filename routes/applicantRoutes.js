@@ -10,7 +10,7 @@ const {
 } = require("../controllers/applicantConvoController");
 
 const {
-  getApplicantFeeds
+  getBlogsFromFollowed
 } = require("../controllers/applicantFeedController");
 
 // Route to create a new applicant
@@ -40,7 +40,7 @@ router.post("/:applicantsid/conversations", createConversation);
 router.get("/:applicantsid/conversations", getConversations);
 
 // Route to get feed conversations for an applicant -following based
-router.get("/:applicantsid/feeds", getApplicantFeeds);
+router.get("/:applicantId/feeds", getBlogsFromFollowed);
 
 // Route to update a specific conversation
 router.put("/:applicantsid/conversations/:id", updateConversation);

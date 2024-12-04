@@ -13,6 +13,7 @@ const userRoutes = require('./routes/userRoutes');
 const companyRoutes = require('./routes/companyRoutes');
 const applicantRoutes = require('./routes/applicantRoutes');
 const recruiterRoutes = require('./routes/recruiterRoutes');
+const blogRoutes = require('./routes/blogRoutes');
 //const companyConvoRoutes = require("./routes/companyConvoRoutes");
 //const applicantConvoRoutes = require('./routes/applicantConvoRoutes');
 
@@ -60,6 +61,7 @@ app.use('/api/v1/recruiters', recruiterRoutes);
 
 app.use('/api/v1/conversations', convoRoutes);
 
+app.use('/api/v1/blogs', blogRoutes);
 
 //app.use("/api/v1/companies", companyConvoRoutes);
 //app.use('/api/v1/applicants', applicantConvoRoutes);
