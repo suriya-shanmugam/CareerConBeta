@@ -33,19 +33,23 @@ router.post('/:applicantId/follow/:targetapplicantId', applicantController.follo
 // Route to unfollow an applicant
 router.post('/:applicantId/unfollow/:targetapplicantId', applicantController.unfollowApplicant);
 
+
+// Route to get feed conversations for an applicant -following based
+router.get("/:applicantId/feeds", getBlogsFromFollowed);
+
+/*
 // Route to create a new conversation
 router.post("/:applicantsid/conversations", createConversation);
 
 // Route to get all conversations for an applicant
 router.get("/:applicantsid/conversations", getConversations);
 
-// Route to get feed conversations for an applicant -following based
-router.get("/:applicantId/feeds", getBlogsFromFollowed);
 
 // Route to update a specific conversation
 router.put("/:applicantsid/conversations/:id", updateConversation);
 
 // Route to delete a specific conversation
 router.delete("/:applicantsid/conversations/:id", deleteConversation);
+*/
 
 module.exports = router;

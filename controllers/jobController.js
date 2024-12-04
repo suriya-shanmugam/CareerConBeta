@@ -281,3 +281,10 @@ module.exports = {
   createJob,
   updateJobById,
 };
+
+
+/*
+
+curl -X GET http://localhost:3000/api/v1/jobs -H "Authorization: Bearer eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJ1c2VySWQiOiI2NzRhM2QzNjhmMmFkNmVmNzUyMGY3MzEiLCJyb2xlIjoiQXBwbGljYW50IiwiaWF0IjoxNzMyOTM1NDEzLCJleHAiOjE3MzI5MzkwMTN9.ww41PpHEn6DaXCAP8oXLdEueQH8lZihIFlRYP4Z1lLo"
+
+*/

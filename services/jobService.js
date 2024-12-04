@@ -1,6 +1,23 @@
 const Job = require('../models/job');
 const mongoose = require('mongoose');
 
+
+
+// Service to create a new job
+const createJob = async (jobData) => {
+  const job = new Job({
+    ...jobData,
+    createdAt: new Date(),
+    updatedAt: new Date(),
+  });
+
+  try {
+    return await job.save();
+  } catch (error) {
+    throw new Error('Error creating job: ' + error.message);
+  }
+};
+
 // Service to get all jobs with optional filtering by companyId
 const getJobs = async (filters) => {
   try {
@@ -67,20 +84,7 @@ const getJobsByCompanies = async (companies, cursor = null, limit = 10) => {
   }
 };
 
-// Service to create a new job
-const createJob = async (jobData) => {
-  const job = new Job({
-    ...jobData,
-    createdAt: new Date(),
-    updatedAt: new Date(),
-  });
 
-  try {
-    return await job.save();
-  } catch (error) {
-    throw new Error('Error creating job: ' + error.message);
-  }
-};
 
 // Service to update a job by its ID
 const updateJobById = async (jobId, updateData) => {

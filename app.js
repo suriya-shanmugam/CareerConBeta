@@ -5,19 +5,20 @@ const cors = require('cors');
 const connectDB = require("./configs/db");
 
 const { protect } = require("./middleware/authMiddleware");
-
 const authRoutes = require('./routes/authRoutes'); // Auth routes
-
 const jobRoutes = require("./routes/jobRoutes");
-const userRoutes = require('./routes/userRoutes');
 const companyRoutes = require('./routes/companyRoutes');
 const applicantRoutes = require('./routes/applicantRoutes');
-const recruiterRoutes = require('./routes/recruiterRoutes');
 const blogRoutes = require('./routes/blogRoutes');
+
+
 //const companyConvoRoutes = require("./routes/companyConvoRoutes");
 //const applicantConvoRoutes = require('./routes/applicantConvoRoutes');
+//const convoRoutes = require('./routes/convoRoutes');
+//const recruiterRoutes = require('./routes/recruiterRoutes');
+//const userRoutes = require('./routes/userRoutes');
 
-const convoRoutes = require('./routes/convoRoutes');
+
 const { error } = require('winston');
 
 connectDB();
@@ -52,14 +53,14 @@ app.use('/api/v1/auth', authRoutes);
 
 app.use("/api/v1/jobs", jobRoutes);
 
-app.use('/api/v1/users', userRoutes);
+//app.use('/api/v1/users', userRoutes);
 
 app.use('/api/v1/companies', companyRoutes);
 app.use('/api/v1/applicants', applicantRoutes);
 
-app.use('/api/v1/recruiters', recruiterRoutes);
+//app.use('/api/v1/recruiters', recruiterRoutes);
 
-app.use('/api/v1/conversations', convoRoutes);
+//app.use('/api/v1/conversations', convoRoutes);
 
 app.use('/api/v1/blogs', blogRoutes);
 
@@ -84,8 +85,3 @@ app.listen(PORT, () => {
 
 
 
-/*
-
-curl -X GET http://localhost:3000/api/v1/jobs -H "Authorization: Bearer eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJ1c2VySWQiOiI2NzRhM2QzNjhmMmFkNmVmNzUyMGY3MzEiLCJyb2xlIjoiQXBwbGljYW50IiwiaWF0IjoxNzMyOTM1NDEzLCJleHAiOjE3MzI5MzkwMTN9.ww41PpHEn6DaXCAP8oXLdEueQH8lZihIFlRYP4Z1lLo"
-
-*/
