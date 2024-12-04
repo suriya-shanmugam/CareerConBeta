@@ -1,4 +1,5 @@
 const mongoose = require('mongoose');
+const Schema = mongoose.Schema;
 const commentSchema = new Schema({
     blogId: {
       type: Schema.Types.ObjectId,
@@ -12,6 +13,7 @@ const commentSchema = new Schema({
     },
     authorId: {
       type: Schema.Types.ObjectId,
+      refPath: 'authorType',
       required: true,
     },
     content: {

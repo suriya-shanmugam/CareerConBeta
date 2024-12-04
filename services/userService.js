@@ -19,9 +19,9 @@ const createUser = async (userData) => {
     firstName,
     lastName,
   });
-
+  const fullname = firstName+" "+lastName;
   if (role === "Applicant") {
-    await applicantService.createApplicant(user._id,additionalData);
+    await applicantService.createApplicant(user._id,fullname,additionalData);
   } else if (role === "Recruiter") {
     
     const { companyDetails } = additionalData;

@@ -4,12 +4,13 @@ const Company = require("../models/company"); // Assuming Company model is impor
 //const Applicant = require("../models/Applicant"); 
 
 // Service to create a new applicant
-const createApplicant = async (user_id, applicantData) => {
+const createApplicant = async (user_id,fullname,applicantData) => {
   // Create the new applicant document
   const newApplicant = new Applicant({
     ...applicantData,
     createdAt: new Date(),
-    userId : user_id
+    userId : user_id,
+    name : fullname
   });
 
   try {

@@ -1,4 +1,5 @@
 const mongoose = require('mongoose');
+const Schema = mongoose.Schema;
 const likeSchema = new Schema({
     blogId: {
       type: Schema.Types.ObjectId,
@@ -12,6 +13,7 @@ const likeSchema = new Schema({
     },
     authorId: {
       type: Schema.Types.ObjectId,
+      refPath: 'authorType',
       required: true,
     },
     createdAt: {

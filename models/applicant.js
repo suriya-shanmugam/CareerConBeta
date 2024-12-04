@@ -3,6 +3,11 @@ const { Schema } = mongoose;
 
 // Applicant Schema definition
 const applicantSchema = new Schema({
+  name: {
+    type: String,
+    required: true,
+    unique: true,
+  },
   userId: {
     type: Schema.Types.ObjectId,
     ref: 'User', // Reference to the User collection

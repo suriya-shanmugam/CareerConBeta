@@ -44,10 +44,7 @@ const getBlogsFromFollowed = async (req, res) => {
     const blogs = await getBlogsFromFollowedEntities(applicantId);  // Fetch blogs for the applicant
     const response = formatResponse('success', 'blogs fetched successfully', blogs)
     // If no blogs are found, return a message indicating so
-    if (blogs.length === 0) {
-      return res.status(404).json({ message: 'No blogs found for followed companies or applicants.' });
-    }
-
+    
     return res.status(200).json(response);
   } catch (err) {
     return res.status(500).json({ message: `Error fetching blogs: ${err.message}` });
