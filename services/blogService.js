@@ -2,6 +2,26 @@ const Applicant = require("../models/applicant"); // assuming the Applicant mode
 const Company = require("../models/company"); // assuming the Company model is imported this way
 const Blog = require("../models/blog"); // assuming the Blog model is imported this way
 
+
+const mapper = function mapDataArray(sourceArray) {
+    return sourceArray.map(source => ({
+      _id: source._id,  // Keep the same _id
+      title: source.title,  // Keep the same title
+      content: source.content,  // Keep the same content
+      authorType: source.authorType,  // Keep the same authorType
+      authorId: {
+        _id: source.authorId._id,  // Keep the same _id from authorId
+        name: source.authorId.userId.firstName  // Extract firstName as 'name'
+      },
+      tags: source.tags,  // Keep the same tags
+      likesCount: source.likesCount,  // Keep the same likes count
+      commentsCount: source.commentsCount,  // Keep the same comments count
+      createdAt: source.createdAt,  // Keep the same createdAt timestamp
+      updatedAt: source.updatedAt,  // Keep the same updatedAt timestamp
+      __v: source.__v  // Keep the same __v version
+    }));
+  }
+
 /**
  * Create a blog by Applicant
  * @param {Object} blogData - The data of the blog (title, content, etc.)
@@ -70,13 +90,23 @@ const createBlogByCompany = async (blogData, companyId) => {
 const getBlogsByApplicant = async (applicantId) => {
   try {
     const blogs = await Blog.find({
-      authorType: "Applicant",
-      authorId: applicantId,
-    })
-      .populate("authorId", "firstName") // Populate user info (only firstName, lastName, and email)
-      .sort({ createdAt: -1 }); // Optional: sort by createdAt in descending order
-
-    return blogs;
+        authorType: "Applicant",
+        authorId: applicantId,
+      })
+        .populate({
+          path: 'authorId', // Populate the Applicant document
+          select: 'userId',
+          populate: {
+            path: 'userId', // Now populate the `userId` field which refers to the User document
+            select: 'firstName' // Get only the firstName and lastName from the User document
+          }
+        })
+        .sort({ createdAt: -1 }); // Optional: sort by createdAt in descending order
+        
+        
+        const blogswrapper = mapper(blogs);
+        console.log(blogswrapper)
+        return blogswrapper;
   } catch (err) {
     throw new Error("Error fetching blogs for applicant: " + err.message);
   }
@@ -124,9 +154,16 @@ const getBlogsFromFollowedEntities = async (applicantId) => {
         authorType: 'Applicant',
         authorId: applicantId  // Fetch only the applicant's own blogs
       })
-        .populate('authorId', 'firstName')  // Populate applicant info
-        .sort({ createdAt: -1 });  // Sort by most recent
-  
+      .populate({
+        path: 'authorId', // Populate the Applicant document
+        select: 'userId',
+        populate: {
+          path: 'userId', // Now populate the `userId` field which refers to the User document
+          select: 'firstName' // Get only the firstName and lastName from the User document
+        }
+      })
+      .sort({ createdAt: -1 }); // Optional: sort by createdAt in descending order
+      const ownblogswrapper = mapper(ownBlogs);
       // Step 4: Fetch blogs for followed companies
       const companyBlogs = await Blog.find({
         authorType: 'Company',
@@ -140,11 +177,18 @@ const getBlogsFromFollowedEntities = async (applicantId) => {
         authorType: 'Applicant',
         authorId: { $in: followedApplicantIds }  // Fetch blogs from followed applicants
       })
-        .populate('authorId', 'firstName')  // Populate applicant info
-        .sort({ createdAt: -1 });  // Sort by most recent
-  
+      .populate({
+        path: 'authorId', // Populate the Applicant document
+        select: 'userId',
+        populate: {
+          path: 'userId', // Now populate the `userId` field which refers to the User document
+          select: 'firstName' // Get only the firstName and lastName from the User document
+        }
+      })
+      .sort({ createdAt: -1 }); // Optional: sort by createdAt in descending order
+      const applicantblogswrapper = mapper(applicantBlogs);
       // Step 6: Combine the blogs from own blogs, followed companies, and followed applicants
-      const allBlogs = [...ownBlogs, ...companyBlogs, ...applicantBlogs];
+      const allBlogs = [...ownblogswrapper, ...companyBlogs, ...applicantblogswrapper];
   
       // Step 7: Sort combined blogs by creation date (most recent first)
       allBlogs.sort((a, b) => new Date(b.createdAt) - new Date(a.createdAt));
