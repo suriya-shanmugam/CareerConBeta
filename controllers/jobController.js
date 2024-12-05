@@ -147,16 +147,16 @@ const analyzejob = async (req, res) => {
   const applicantId = req.query.applicantId;
   const { jobId } = req.params;
 
-  console.log(applicantId);
-  console.log(jobId);
+  //console.log(applicantId);
+  //console.log(jobId);
 
   const applicant = await applicantService.getApplicantById(applicantId);
   const skills = applicant.skills;
-  console.log(skills);
+  //console.log(skills);
 
   const job = await jobService.getJobById(jobId);
   const requirements = job.description;
-  console.log(requirements);
+  //console.log(requirements);
 
 
   const query = `
@@ -173,7 +173,7 @@ const analyzejob = async (req, res) => {
   
   `
   
-  console.log(query);
+  //console.log(query);
 
   const { GoogleGenerativeAI, SchemaType } = require("@google/generative-ai");
 
@@ -231,7 +231,7 @@ const analyzejob = async (req, res) => {
   
   const response = formatResponse(
     "success",
-    "Jobs fetched successfully",
+    "Skills fetched successfully",
     jsonresponse
   ); 
   res.status(200).json(response);
@@ -294,7 +294,7 @@ module.exports = {
 curl -X GET http://localhost:3000/api/v1/jobs -H "Authorization: Bearer eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJ1c2VySWQiOiI2NzRhM2QzNjhmMmFkNmVmNzUyMGY3MzEiLCJyb2xlIjoiQXBwbGljYW50IiwiaWF0IjoxNzMyOTM1NDEzLCJleHAiOjE3MzI5MzkwMTN9.ww41PpHEn6DaXCAP8oXLdEueQH8lZihIFlRYP4Z1lLo"
 
 curl -X GET "http://localhost:3000/api/v1/jobs/6750ed6ab21d8bdb59c1cef6/analyze?applicantId=674fbe5bc400d9b08e229f97"
-{"status":"success","message":"Jobs fetched successfully","data":"[{\"HardSkills\": [\"Technical understanding\", \"Process improvement\", \"Data processing\", \"Reporting research results\", \"Networking knowledge\", \"Operating systems\", \"Reporting skills\", \"Documentation skills\"], \"MatchedSkills\": [\"Operating systems\", \"Documentation skills\"], \"SoftSkills\": [\"Presenting technical information\", \"Written communication\", \"Client relationships\"]}]"}
+{"status":"success","message":"skills fetched successfully","data":"[{\"HardSkills\": [\"Technical understanding\", \"Process improvement\", \"Data processing\", \"Reporting research results\", \"Networking knowledge\", \"Operating systems\", \"Reporting skills\", \"Documentation skills\"], \"MatchedSkills\": [\"Operating systems\", \"Documentation skills\"], \"SoftSkills\": [\"Presenting technical information\", \"Written communication\", \"Client relationships\"]}]"}
 
 
 */

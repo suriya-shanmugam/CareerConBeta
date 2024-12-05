@@ -106,6 +106,43 @@ const getBlogsByApplicant = async (applicantId) => {
 };
 
 /**
+ * Fetch a single blog written by a specific Applicant and populate the user info
+ * @param {ObjectId} applicantId - The ObjectId of the Applicant
+ * @param {ObjectId} blogId - The ObjectId of the Blog to fetch
+ * @returns {Promise} - The single blog written by the applicant with populated user info
+ */
+const getBlogByApplicant = async (applicantId, blogId) => {
+  try {
+    // Use findOne to get a specific blog by the applicant's ID and the blog's ID
+    const blog = await Blog.findOne({
+      _id: blogId
+    })
+      .populate("authorId", "name") // Populate the author info (e.g., name)
+      .exec();
+
+    const blogObj = blog.toObject();
+
+    // Check if the applicant has liked the blog
+    const like = await Like.findOne({
+      blogId: blog._id,
+      authorType: "Applicant",
+      authorId: applicantId,
+    });
+
+    // Add the `likedByUser` field
+    blogObj.likedByUser = like ? true : false;
+
+    if (!blog) {
+      throw new Error("Blog not found for the given applicant.");
+    }
+
+    return blogObj;
+  } catch (err) {
+    throw new Error("Error fetching blog for applicant: " + err.message);
+  }
+};
+
+/**
  * Service to fetch blogs for a company
  * @param {String} companyId - The ID of the company whose blogs are to be fetched
  * @returns {Promise<Array>} The list of blogs associated with the company
@@ -339,7 +376,6 @@ const getBlogsByCompany = async (companyId) => {
   }
 };*/
 
-
 const getBlogsFromFollowedEntities = async (
   applicantId,
   cursor = null,
@@ -365,7 +401,9 @@ const getBlogsFromFollowedEntities = async (
       : [];
 
     // Step 3: Construct the pagination filter based on the cursor for pagination
-    const paginationFilter = cursor ? { createdAt: { $lt: new Date(cursor) } } : {};
+    const paginationFilter = cursor
+      ? { createdAt: { $lt: new Date(cursor) } }
+      : {};
 
     // Helper function to fetch blogs with cursor logic
     const fetchBlogs = async (filter, remainingLimit) => {
@@ -424,7 +462,7 @@ const getBlogsFromFollowedEntities = async (
         // Check if the applicant has liked the blog
         const like = await Like.findOne({
           blogId: blog._id,
-          authorType: blog.authorType,
+          authorType: "Applicant",
           authorId: applicantId,
         });
 
@@ -451,7 +489,6 @@ const getBlogsFromFollowedEntities = async (
     );
   }
 };
-
 
 /**
  * Service to post a comment on a blog
@@ -532,29 +569,42 @@ const postLike = async (blogId, authorType, authorId) => {
 
     // Step 2: Check if the like already exists
     const existingLike = await Like.findOne({ blogId, authorType, authorId });
+
     if (existingLike) {
-      throw new Error("You have already liked this blog");
+      // If the like already exists, remove it (unlike)
+      
+      // Step 3: Remove the like from the database using deleteOne
+      await Like.deleteOne({ blogId, authorType, authorId });
+
+      // Step 4: Decrement the likesCount for the blog
+      blog.likesCount -= 1;
+      await blog.save();
+
+      return { message: "You have unliked this blog" };
+    } else {
+      // If the like doesn't exist, create a new like (like the blog)
+      
+      // Step 3: Create a new like
+      const newLike = new Like({
+        blogId,
+        authorType,
+        authorId,
+      });
+
+      // Step 4: Save the like to the database
+      await newLike.save();
+
+      // Step 5: Increment the likesCount for the blog
+      blog.likesCount += 1;
+      await blog.save();
+
+      return newLike;
     }
-
-    // Step 3: Create the new like
-    const newLike = new Like({
-      blogId,
-      authorType,
-      authorId,
-    });
-
-    // Step 4: Save the like to the database
-    await newLike.save();
-
-    // Step 5: Increment the likesCount for the blog
-    blog.likesCount += 1;
-    await blog.save();
-
-    return newLike;
   } catch (err) {
-    throw new Error("Error posting like: " + err.message);
+    throw new Error("Error toggling like: " + err.message);
   }
 };
+
 
 /**
  * Service to fetch all likes of a blog
@@ -584,6 +634,7 @@ module.exports = {
   createBlogByApplicant,
   createBlogByCompany,
   getBlogsByApplicant,
+  getBlogByApplicant,
   getBlogsByCompany,
   getBlogsFromFollowedEntities,
   postComment,

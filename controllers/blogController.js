@@ -5,11 +5,12 @@ const {
   createBlogByApplicant,
   createBlogByCompany,
   getBlogsByApplicant,
+  getBlogByApplicant,
   getBlogsByCompany,
   postComment,
   fetchAllComments,
   postLike,
-  fetchAllLikes
+  fetchAllLikes,
 } = blogService;
 
 /**
@@ -20,11 +21,9 @@ const createBlog = async (req, res) => {
 
   // Validate input
   if (!title || !content || !authorType || !authorId) {
-    return res
-      .status(400)
-      .json({
-        message: "Title, content, authorType, and authorId are required",
-      });
+    return res.status(400).json({
+      message: "Title, content, authorType, and authorId are required",
+    });
   }
 
   try {
@@ -36,12 +35,9 @@ const createBlog = async (req, res) => {
     } else if (authorType === "Company") {
       newBlog = await createBlogByCompany({ title, content, tags }, authorId);
     } else {
-      return res
-        .status(400)
-        .json({
-          message:
-            "Invalid author type. It must be either Applicant or Company.",
-        });
+      return res.status(400).json({
+        message: "Invalid author type. It must be either Applicant or Company.",
+      });
     }
 
     const response = formatResponse(
@@ -55,6 +51,37 @@ const createBlog = async (req, res) => {
     return res
       .status(500)
       .json({ message: `Error creating blog: ${error.message}` });
+  }
+};
+
+const getSingleBlogByApplicant = async (req, res) => {
+  try {
+    // Extract applicantId and blogId from request parameters
+    const applicantId = req.query.applicantId;
+    
+    const { blogId } = req.params;
+
+    // Validate if the provided applicantId and blogId are valid ObjectIds
+    if (! blogId || !applicantId) {
+      return res
+        .status(400)
+        .json({ message: "Invalid applicantId or blogId." });
+    }
+    
+    // Fetch the blog from the service
+    const blog = await getBlogByApplicant(applicantId, blogId);
+
+    const response = formatResponse(
+      "success",
+      "Blog fetched successfully",
+      blog
+    );
+    // If blog is found, return it
+    return res.status(200).json(response);
+  } catch (error) {
+    // Handle errors and send appropriate response
+    console.error(error);
+    return res.status(500).json({ message: error.message });
   }
 };
 
@@ -75,12 +102,10 @@ const getBlogs = async (req, res) => {
 
   // Validate that authorType is either 'Applicant' or 'Company'
   if (!["Applicant", "Company"].includes(authorType)) {
-    return res
-      .status(400)
-      .json({
-        message:
-          'Invalid authorType. It must be either "Applicant" or "Company".',
-      });
+    return res.status(400).json({
+      message:
+        'Invalid authorType. It must be either "Applicant" or "Company".',
+    });
   }
 
   try {
@@ -95,11 +120,9 @@ const getBlogs = async (req, res) => {
 
     // If no blogs are found, return a 404 response
     if (blogs.length === 0) {
-      return res
-        .status(404)
-        .json({
-          message: `No blogs found for this ${authorType.toLowerCase()}`,
-        });
+      return res.status(404).json({
+        message: `No blogs found for this ${authorType.toLowerCase()}`,
+      });
     }
 
     const response = formatResponse(
@@ -121,30 +144,25 @@ const getBlogs = async (req, res) => {
  * Controller to post a comment on a blog
  */
 const postCommentHandler = async (req, res) => {
-    
-    const {blogId} = req.params;
-    const {  authorType, authorId, content } = req.body;
+  const { blogId } = req.params;
+  const { authorType, authorId, content } = req.body;
 
   if (!blogId || !authorType || !authorId || !content) {
-    return res
-      .status(400)
-      .json({
-        message: "Blog ID, author type, author ID, and content are required.",
-      });
+    return res.status(400).json({
+      message: "Blog ID, author type, author ID, and content are required.",
+    });
   }
 
   try {
     const newComment = await postComment(blogId, authorType, authorId, content);
-    
-    const response = formatResponse(
-        "success",
-        "NewComment posted successfully",
-        newComment
-      );
 
-    return res
-      .status(201)
-      .json(response);
+    const response = formatResponse(
+      "success",
+      "NewComment posted successfully",
+      newComment
+    );
+
+    return res.status(201).json(response);
   } catch (err) {
     return res
       .status(500)
@@ -166,12 +184,12 @@ const fetchAllCommentsHandler = async (req, res) => {
     const comments = await fetchAllComments(blogId);
 
     const response = formatResponse(
-        "success",
-        "comments fetched successfully",
-        comments
+      "success",
+      "comments fetched successfully",
+      comments
     );
-    
-    return res.status(200).json( response );
+
+    return res.status(200).json(response);
   } catch (err) {
     return res
       .status(500)
@@ -180,68 +198,72 @@ const fetchAllCommentsHandler = async (req, res) => {
 };
 
 const postLikeHandler = async (req, res) => {
-    const { blogId } = req.params;
-    const { authorType, authorId } = req.body;
-  
-    // Validate the input
-    if (!blogId || !authorType || !authorId) {
-      return res.status(400).json({
-        message: "Blog ID, author type, and author ID are required.",
-      });
-    }
-  
-    try {
-      // Call the service to post a like
-      const newLike = await postLike(blogId, authorType, authorId);
-  
-      // Format and return the response
-      const response = formatResponse(
-        "success",
-        "Like posted successfully",
-        newLike
-      );
-  
-      return res.status(201).json(response);
-    } catch (err) {
-      return res.status(500).json({ message: `Error posting like: ${err.message}` });
-    }
-  };
-  
-  /**
-   * Controller to fetch all likes of a blog
-   */
-  const fetchAllLikesHandler = async (req, res) => {
-    const { blogId } = req.params;
-  
-    if (!blogId) {
-      return res.status(400).json({ message: "Blog ID is required." });
-    }
-  
-    try {
-      // Call the service to fetch all likes
-      const likes = await fetchAllLikes(blogId);
-  
-      // Format and return the response
-      const response = formatResponse(
-        "success",
-        "Likes fetched successfully",
-        likes
-      );
-  
-      return res.status(200).json(response);
-    } catch (err) {
-      return res.status(500).json({ message: `Error fetching likes: ${err.message}` });
-    }
-  };
+  const { blogId } = req.params;
+  const { authorType, authorId } = req.body;
 
+  // Validate the input
+  if (!blogId || !authorType || !authorId) {
+    return res.status(400).json({
+      message: "Blog ID, author type, and author ID are required.",
+    });
+  }
+
+  try {
+    // Call the service to post a like
+    const newLike = await postLike(blogId, authorType, authorId);
+
+    // Format and return the response
+    const response = formatResponse(
+      "success",
+      "Like posted successfully",
+      newLike
+    );
+
+    return res.status(201).json(response);
+  } catch (err) {
+    return res
+      .status(500)
+      .json({ message: `Error posting like: ${err.message}` });
+  }
+};
+
+/**
+ * Controller to fetch all likes of a blog
+ */
+const fetchAllLikesHandler = async (req, res) => {
+  const { blogId } = req.params;
+
+  if (!blogId) {
+    return res.status(400).json({ message: "Blog ID is required." });
+  }
+
+  try {
+    // Call the service to fetch all likes
+    const likes = await fetchAllLikes(blogId);
+
+    // Format and return the response
+    const response = formatResponse(
+      "success",
+      "Likes fetched successfully",
+      likes
+    );
+
+    return res.status(200).json(response);
+  } catch (err) {
+    return res
+      .status(500)
+      .json({ message: `Error fetching likes: ${err.message}` });
+  }
+};
 
 module.exports = {
   createBlog,
   getBlogs,
+  getSingleBlogByApplicant,
   postCommentHandler,
   fetchAllCommentsHandler,
   postLikeHandler,
-  fetchAllLikesHandler
+  fetchAllLikesHandler,
 };
 
 /*

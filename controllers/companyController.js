@@ -192,7 +192,19 @@ curl -X POST http://your-api-url.com/companies \
            
            "postedBy": "674fed8225cb88c2581e0a3d",
            "title": "Software Engineer",
-           "description": "Join our team to build cutting-edge software!",
+           "description": "IT Specialist Skills and Qualifications:
+
+    Technical understanding
+    Process improvement
+    Data processing
+    Reporting research results
+    Networking knowledge
+    Presenting technical information
+    Written communication
+    Operating systems
+    Reporting skills
+    Client relationships
+    Documentation skills",
            "requirements": ["JavaScript", "React", "Node.js"],
            "location": "San Francisco",
            "salary": { "min": 100000, "max": 130000, "currency": "USD" },
