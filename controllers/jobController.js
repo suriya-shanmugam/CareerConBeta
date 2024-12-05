@@ -1,6 +1,6 @@
 const jobService = require("../services/jobService");
-const jobRedisService = require('../services/jobRedisService');
-
+const applicantService = require("../services/applicantService");
+const jobRedisService = require("../services/jobRedisService");
 
 const { formatResponse } = require("../utils/helper");
 const Applicant = require("../models/applicant");
@@ -47,12 +47,14 @@ const getJobsByUser = async (req, res) => {
 
     // Filter cached jobs based on the cursor timestamp
     if (cursorTimestamp) {
-      cachedJobs = cachedJobs.filter((job) => new Date(job.createdAt) > cursorTimestamp);
+      cachedJobs = cachedJobs.filter(
+        (job) => new Date(job.createdAt) > cursorTimestamp
+      );
     }
 
     const cachedJobCount = cachedJobs ? cachedJobs.length : 0;
 
-    console.log("Cachedjob count-",cachedJobCount)
+    console.log("Cachedjob count-", cachedJobCount);
 
     // If Redis contains sufficient jobs, return from Redis
     if (cachedJobs && cachedJobCount >= parsedLimit) {
@@ -60,7 +62,7 @@ const getJobsByUser = async (req, res) => {
       const lastJob = jobsToReturn[jobsToReturn.length - 1];
       const newCursor = lastJob ? lastJob.createdAt : null;
 
-      const response = formatResponse('success', 'Jobs fetched from cache', {
+      const response = formatResponse("success", "Jobs fetched from cache", {
         jobs: jobsToReturn,
         nextCursor: newCursor,
         hasMore: cachedJobCount > parsedLimit,
@@ -71,17 +73,17 @@ const getJobsByUser = async (req, res) => {
 
     // Step 2: If Redis does not have sufficient jobs, fetch from MongoDB
     const applicant = await Applicant.findOne({ userId }).select(
-      'followingCompanies'
+      "followingCompanies"
     );
     if (!applicant) {
-      return res.status(404).json({ message: 'Applicant not found' });
+      return res.status(404).json({ message: "Applicant not found" });
     }
 
     // Calculate the remaining jobs to fetch from the database
     const jobsToFetchFromDb = parsedLimit - cachedJobCount;
     let totalJobsFetched = cachedJobCount;
     let jobs = cachedJobs || [];
-    let currentCursor = cursor || '';
+    let currentCursor = cursor || "";
     let hasMore = true;
 
     const companyBatchSize = 50;
@@ -127,10 +129,9 @@ const getJobsByUser = async (req, res) => {
       await jobRedisService.appendJobs(userId, newJobs); // Append new jobs to Redis
     }*/
 
+    //jobRedisService.storeJobs(userId, jobs)
 
-     //jobRedisService.storeJobs(userId, jobs)  
-
-    const response = formatResponse('success', 'Jobs fetched successfully', {
+    const response = formatResponse("success", "Jobs fetched successfully", {
       jobs: jobs.slice(0, parsedLimit),
       nextCursor: currentCursor,
       hasMore,
@@ -142,7 +143,99 @@ const getJobsByUser = async (req, res) => {
   }
 };
 
+const analyzejob = async (req, res) => {
+  const applicantId = req.query.applicantId;
+  const { jobId } = req.params;
 
+  console.log(applicantId);
+  console.log(jobId);
+
+  const applicant = await applicantService.getApplicantById(applicantId);
+  const skills = applicant.skills;
+  console.log(skills);
+
+  const job = await jobService.getJobById(jobId);
+  const requirements = job.description;
+  console.log(requirements);
+
+
+  const query = `
+  Generate the hardskill, softskill and my skill based on this info
+  <JOB Description> 
+  ${requirements} 
+  
+  </<JOB Description> 
+  
+  <Myskill>
+  ${"OS, Documentation"} 
+  </Myskill>
+  
+  
+  `
+  
+  console.log(query);
+
+  const { GoogleGenerativeAI, SchemaType } = require("@google/generative-ai");
+
+  
+
+  const genAI = new GoogleGenerativeAI("");
+
+  const schema = {
+    description: "List of skills with categories and matches",
+    type: SchemaType.ARRAY,
+    items: {
+      type: SchemaType.OBJECT,
+      properties: {
+        HardSkills: {
+          type: SchemaType.ARRAY,
+          items: {
+            type: SchemaType.STRING,
+          },
+          description: "List of hard skills (e.g., technical skills, tools)",
+          nullable: false,
+        },
+        SoftSkills: {
+          type: SchemaType.ARRAY,
+          items: {
+            type: SchemaType.STRING,
+          },
+          description: "List of soft skills (e.g., communication, leadership)",
+          nullable: false,
+        },
+        MatchedSkills: {
+          type: SchemaType.ARRAY,
+          items: {
+            type: SchemaType.STRING,
+          },
+          description: "List of skills that match both hard and soft skills",
+          nullable: false,
+        },
+      },
+      required: ["HardSkills", "SoftSkills", "MatchedSkills"],
+    },
+  };
+  
+  
+  const model = genAI.getGenerativeModel({
+    model: "gemini-1.5-pro",
+    generationConfig: {
+      responseMimeType: "application/json",
+      responseSchema: schema,
+    },
+  });
+  
+  const result = await model.generateContent(query);
+  console.log(result.response.text());
+  const jsonresponse = result.response.text()
+  
+  const response = formatResponse(
+    "success",
+    "Jobs fetched successfully",
+    jsonresponse
+  ); 
+  res.status(200).json(response);
+};
 
 // Helper function to split an array into chunks
 function chunkArray(array, chunkSize) {
@@ -161,93 +254,6 @@ function chunkArray(array, chunkSize) {
   }
   return result;
 }
-
-/* const getJobsByUser = async (req, res) => {
-  try {
-    const { userId } = req.params;
-    const { cursor, limit = 20 } = req.query;
-
-    // Get applicant and their followed companies
-    const applicant = await Applicant.findOne({ userId }).select('followingCompanies');
-    if (!applicant) {
-      return res.status(404).json({ message: 'Applicant not found' });
-    }
-
-    // Define batch size (50)
-    const batchSize = 20;
-    let totalJobsFetched = 0;
-    let currentCursor = cursor || '';
-    let jobs = [];
-    let hasMore = true;
-    //let nextCursor = '';
-
-    // Loop through the following companies and fetch jobs in batches until limit is reached
-    while (totalJobsFetched < limit && hasMore) {
-      // Get jobs from the service with pagination
-      const result = await jobService.getJobsByCompanies(
-        applicant.followingCompanies,
-        currentCursor,
-        batchSize
-      );
-
-      // Add fetched jobs to the total list
-      jobs = [...jobs, ...result.jobs];
-      totalJobsFetched += result.jobs.length;
-
-      // Update the cursor and hasMore flag
-      currentCursor = result.nextCursor;
-      hasMore = result.hasMore;
-
-      // If we have fetched enough jobs, stop fetching
-      if (totalJobsFetched >= limit || !hasMore) {
-        break;
-      }
-    }
-
-    // Prepare response with jobs and cursor information
-    const response = formatResponse('success', 'Jobs fetched successfully', {
-      jobs,
-      nextCursor: currentCursor,
-      hasMore
-    });
-
-    res.status(200).json(response);
-  } catch (error) {
-    res.status(500).json({ message: error.message });
-  }
-}; */
-
-/*const getJobsByUser = async (req, res) => {
-  try {
-    const { userId } = req.params;
-    const { cursor, limit = 10 } = req.query;
-
-    // Get applicant and their followed companies
-    const applicant = await Applicant.findOne({ userId }).select('followingCompanies');
-    if (!applicant) {
-      return res.status(404).json({ message: 'Applicant not found' });
-    }
-
-
-
-    // Get jobs from the service with pagination
-    const result = await jobService.getJobsByCompanies(
-      applicant.followingCompanies,
-      cursor,
-      parseInt(limit)
-    );
-
-    const response = formatResponse('success', 'Jobs fetched successfully', {
-      jobs: result.jobs,
-      nextCursor: result.nextCursor,
-      hasMore: result.hasMore
-    });
-    
-    res.status(200).json(response);
-  } catch (error) {
-    res.status(500).json({ message: error.message });
-  }
-}; */
 
 // Controller to handle creating a job
 const createJob = async (req, res) => {
@@ -280,11 +286,15 @@ module.exports = {
   getJobsByUser,
   createJob,
   updateJobById,
+  analyzejob,
 };
-
 
 /*
 
 curl -X GET http://localhost:3000/api/v1/jobs -H "Authorization: Bearer eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJ1c2VySWQiOiI2NzRhM2QzNjhmMmFkNmVmNzUyMGY3MzEiLCJyb2xlIjoiQXBwbGljYW50IiwiaWF0IjoxNzMyOTM1NDEzLCJleHAiOjE3MzI5MzkwMTN9.ww41PpHEn6DaXCAP8oXLdEueQH8lZihIFlRYP4Z1lLo"
+
+curl -X GET "http://localhost:3000/api/v1/jobs/6750ed6ab21d8bdb59c1cef6/analyze?applicantId=674fbe5bc400d9b08e229f97"
+{"status":"success","message":"Jobs fetched successfully","data":"[{\"HardSkills\": [\"Technical understanding\", \"Process improvement\", \"Data processing\", \"Reporting research results\", \"Networking knowledge\", \"Operating systems\", \"Reporting skills\", \"Documentation skills\"], \"MatchedSkills\": [\"Operating systems\", \"Documentation skills\"], \"SoftSkills\": [\"Presenting technical information\", \"Written communication\", \"Client relationships\"]}]"}
+
 
 */

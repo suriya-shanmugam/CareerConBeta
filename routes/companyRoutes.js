@@ -15,7 +15,7 @@ router.get('/', companyController.getAllCompanies);
 
 router.get('/:companyid', companyController.getCompanyById);
 
-router.post('/:companyid/jobs', companyController.createJob);
+router.post('/:companyid/job', companyController.createJob);
 
 router.get('/:companyId/jobs', companyController.getCompanyJobs);
 

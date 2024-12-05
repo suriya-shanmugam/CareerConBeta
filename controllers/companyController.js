@@ -1,4 +1,5 @@
 const companyService = require('../services/companyService');
+const jobService = require("../services/jobService");
 //const rabbitMQService = require('../services/rabbitmqService');
 
 const { jobPostedEvent } = require('../events/jobPostedEvent').default;
@@ -29,9 +30,13 @@ const createJob = async (req, res) => {
   const jobData = req.body; // Get the job data from the request body
 
   try {
-    const newJob = await companyService.createJob(companyid, jobData);
-    console.log(newJob);
     
+    //const newJob = await companyService.createJob(companyid, jobData);
+    //console.log(newJob);
+    
+    
+    const newJob = await jobService.createJobToCompany(companyid, jobData);
+    console.log(newJob);
     
     
     /*const jobTitle = newJob.title;
@@ -39,10 +44,11 @@ const createJob = async (req, res) => {
     const company = newJob.title;
     await rabbitMQService.publishJob({ company, jobTitle, linkURL});*/
 
+    const response = formatResponse('success', 'job created successfully', newJob)
     const jobEvent = jobPostedEvent(companyid, newJob.title,"http://chatgpt.com");
     publishEvent(jobEvent);
 
-    res.status(201).json(formatResponse('Job created successfully'));
+    res.status(201).json(response);
   } catch (error) {
     if (error.message === 'Company not found' || error.message === 'Recruiter not found') {
       res.status(400).json({ message: error.message });
@@ -56,7 +62,7 @@ const createJob = async (req, res) => {
 const getAllCompanies = async (req, res) => {
   try {
     const companies = await companyService.getAllCompanies();
-    const response = formatResponse('success', 'Companies fetched successfully', companies)
+    const response = formatResponse('success', 'Companies fetched successfully', companies);
     res.status(200).json(response);
   } catch (error) {
     res.status(500).json({ message: 'Error fetching companies', error: error.message });
@@ -181,6 +187,20 @@ curl -X POST http://your-api-url.com/companies \
     "type": "Full-time"
   }'
 
+
+  curl -X POST http://localhost:3000/api/v1/companies/674fed8225cb88c2581e0a3b/job      -H "Content-Type: application/json"      -d '{
+           
+           "postedBy": "674fed8225cb88c2581e0a3d",
+           "title": "Software Engineer",
+           "description": "Join our team to build cutting-edge software!",
+           "requirements": ["JavaScript", "React", "Node.js"],
+           "location": "San Francisco",
+           "salary": { "min": 100000, "max": 130000, "currency": "USD" },
+           "department": "Engineering",
+           "type": "Full-time",
+           "jobLink": "https://example.com/apply"
+         }'
+{"status":"success","message":"job created successfully","data":{"companyId":"674fed8225cb88c2581e0a3b","postedBy":"674fed8225cb88c2581e0a3d","title":"Software Engineer","description":"Join our team to build cutting-edge software!","requirements":["JavaScript","React","Node.js"],"location":"San Francisco","salary":{"min":100000,"max":130000,"currency":"USD"},"department":"Engineering","type":"Full-time","status":"Active","applicationsCount":0,"createdAt":"2024-12-04T21:17:56.862Z","updatedAt":"2024-12-04T21:17:56.862Z","_id":"6750c704a0ea61444ed95c19","__v":0}}
    
 
 */

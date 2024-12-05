@@ -1,6 +1,7 @@
 const Job = require('../models/job');
 const mongoose = require('mongoose');
-
+const Company = require('../models/company');
+const Recruiter = require('../models/recruiter');
 
 
 // Service to create a new job
@@ -13,6 +14,45 @@ const createJob = async (jobData) => {
 
   try {
     return await job.save();
+  } catch (error) {
+    throw new Error('Error creating job: ' + error.message);
+  }
+};
+
+
+// Service to create a job for a company based on companyId
+const createJobToCompany = async (companyId, jobData) => {
+  // Check if the company exists
+  const company = await Company.findById(companyId);
+  if (!company) {
+    throw new Error('Company not found');
+  }
+
+  // Validate recruiter ID (postedBy)
+  console.log(jobData)
+  const recruiter = await Recruiter.findById(jobData.postedBy);
+  if (!recruiter) {
+    throw new Error('Recruiter not found');
+  }
+
+  // Prepare job data
+  const newJob = {
+    companyId,
+    postedBy: jobData.postedBy,
+    title: jobData.title,
+    description: jobData.description,
+    requirements: jobData.requirements || [],
+    location: jobData.location,
+    salary: jobData.salary,
+    department: jobData.department,
+    type: jobData.type,
+    status: 'Active', // Default status
+    jobLink : jobData.jobLink
+  };
+
+  try {
+    // Use jobService to create the job
+    return await createJob(newJob);
   } catch (error) {
     throw new Error('Error creating job: ' + error.message);
   }
@@ -134,5 +174,6 @@ module.exports = {
   getJobsByCompanies,
   getJobsByCompanyId,
   createJob,
+  createJobToCompany,
   updateJobById
 };
