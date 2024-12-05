@@ -16,7 +16,7 @@ const blogRoutes = require('./routes/blogRoutes');
 //const applicantConvoRoutes = require('./routes/applicantConvoRoutes');
 //const convoRoutes = require('./routes/convoRoutes');
 //const recruiterRoutes = require('./routes/recruiterRoutes');
-//const userRoutes = require('./routes/userRoutes');
+const userRoutes = require('./routes/userRoutes');
 
 
 const { error } = require('winston');
@@ -53,7 +53,7 @@ app.use('/api/v1/auth', authRoutes);
 
 app.use("/api/v1/jobs", jobRoutes);
 
-//app.use('/api/v1/users', userRoutes);
+app.use('/api/v1/users', userRoutes);
 
 app.use('/api/v1/companies', companyRoutes);
 app.use('/api/v1/applicants', applicantRoutes);

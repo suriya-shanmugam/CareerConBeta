@@ -13,6 +13,6 @@ const companyCreatedEvent = (companyId, companyName) => ({
 });
 
 // Export the constants and functions
-export default {
+module.exports = {
   companyCreatedEvent
-};
+}

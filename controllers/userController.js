@@ -3,7 +3,7 @@ const Applicant = require("../models/applicant");
 const userService = require("../services/userService");
 const jwt = require("jsonwebtoken");
 
-const { companyCreatedEvent } = require('../events/companyCreatedEvent').default;
+const { companyCreatedEvent } = require('../events/companyCreatedEvent');
 const {publishEvent} = require('../utils/rabbitmqService')
 
 

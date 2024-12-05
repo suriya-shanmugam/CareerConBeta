@@ -1,12 +1,19 @@
 const { createClient } = require('@redis/client');
+require('dotenv').config(); // Load environment variables from .env file
 
-// Initialize Redis client
-const redisClient = createClient();
-redisClient.connect().then(() => {
-  console.log('Connected to Redis.');
-}).catch(err => {
-  console.error('Failed to connect to Redis:', err);
+// Initialize Redis client using environment variables
+const redisClient = createClient({
+  url: `${process.env.REDIS_HOST || 'redis://localhost'}:${process.env.REDIS_PORT || 6379}`, // Use Redis host and port from env
+  password: process.env.REDIS_PASSWORD || undefined, // Optional: Use Redis password if set in env
 });
+
+redisClient.connect()
+  .then(() => {
+    console.log('Connected to Redis.');
+  })
+  .catch(err => {
+    console.error('Failed to connect to Redis:', err);
+  });
 
 // Service to handle job-related operations in Redis
 const jobRedisService = {

@@ -14,6 +14,6 @@ const jobPostedEvent = (companyId, jobTitle, jobLink) => ({
 });
 
 // Export the constants and functions
-export default {
+module.exports = {
   jobPostedEvent
 };

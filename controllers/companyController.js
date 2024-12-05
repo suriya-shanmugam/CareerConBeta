@@ -2,8 +2,9 @@ const companyService = require('../services/companyService');
 const jobService = require("../services/jobService");
 //const rabbitMQService = require('../services/rabbitmqService');
 
-const { jobPostedEvent } = require('../events/jobPostedEvent').default;
-const { companyFollowedEvent } = require('../events/companyFollowedEvent').default;
+const { jobPostedEvent } = require('../events/jobPostedEvent');
+const { companyFollowedEvent } = require('../events/companyFollowedEvent');
+
 
 const {formatResponse} = require('../utils/helper')
 const {publishEvent} = require('../utils/rabbitmqService')
@@ -45,7 +46,7 @@ const createJob = async (req, res) => {
     await rabbitMQService.publishJob({ company, jobTitle, linkURL});*/
 
     const response = formatResponse('success', 'job created successfully', newJob)
-    const jobEvent = jobPostedEvent(companyid, newJob.title,"http://chatgpt.com");
+    const jobEvent = jobPostedEvent(companyid, newJob.title,newJob.jobLink);
     publishEvent(jobEvent);
 
     res.status(201).json(response);

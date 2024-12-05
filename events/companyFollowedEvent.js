@@ -13,6 +13,6 @@ const companyFollowedEvent = (companyId, userId) => ({
 });
 
 // Export the constants and functions
-export default {
-    companyFollowedEvent
+module.exports = {
+  companyFollowedEvent
 };
