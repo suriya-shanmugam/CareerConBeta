@@ -10,7 +10,7 @@ const {publishEvent} = require('../utils/rabbitmqService')
 // Controller to handle creating a new user
 const createUser = async (req, res) => {
   try {
-    const { email, passwordHash, role, firstName, lastName, additionalData } =
+    const { email, role, firstName, lastName, additionalData } =
       req.body;
 
     if (!["Applicant", "Recruiter", "Moderator"].includes(role)) {
@@ -19,19 +19,11 @@ const createUser = async (req, res) => {
 
     const user = await userService.createUser({
       email,
-      passwordHash,
       role,
       firstName,
       lastName,
       additionalData,
     });
-
-    // Generate a token
-    const token = jwt.sign(
-      { userId: user._id, role: user.role },
-      process.env.JWT_SECRET,
-      { expiresIn: "1h" }
-    );
 
     // Prepare the basic user info
     /*const userResponse = {
@@ -81,7 +73,6 @@ const createUser = async (req, res) => {
     // Send the response with user data and token
     res.status(201).json({
       user: userResponse,
-      token,
     });
   } catch (error) {
     if (error.message === "User already exists") {
@@ -106,10 +97,37 @@ const getAllUsers = async (req, res) => {
   }
 };
 
+// Controller to handle fetching a user by ID
+const getUserByEmail = async (req, res) => {
+  console.log('req.params.id',req.params.id);
+  try {
+    const email = req.params.id;
+    const user = await userService.getUserByEmail(email);
+
+    if (!user) {
+      return res.status(200).json({ userExists: false });
+    }
+
+    const userResponse = {
+      id: user._id,
+      email: user.email,
+      role: user.role,
+      firstName: user.firstName,
+      lastName: user.lastName,
+    };
+
+    res.status(200).json({ userExists: true, user: userResponse });
+  } catch (error) {
+    res.status(500).json({ message: "Error fetching user", error: error.message });
+  }
+};
+
 module.exports = {
   createUser,
   getAllUsers,
+  getUserByEmail,
 };
+
 
 /*
 

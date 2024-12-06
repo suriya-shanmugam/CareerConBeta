@@ -8,13 +8,12 @@ const recruiterService = require("../services/recruiterService");
 
 // Service to create a new user
 const createUser = async (userData) => {
-  const { email, passwordHash, role, firstName, lastName, additionalData } =
+  const { email, role, firstName, lastName, additionalData } =
     userData;
 
   // Create the base user
   const user = await User.create({
     email,
-    passwordHash,
     role,
     firstName,
     lastName,
@@ -64,17 +63,24 @@ const signInUser = async (email, password) => {
     throw new Error('Invalid credentials');
   }
 
-  console.log("matched");
-  // Generate JWT token
-  const token = jwt.sign({ userId: user._id, role: user.role }, process.env.JWT_SECRET, { expiresIn: '1h' });
-  
   return { user, token };
+};
+
+// Service to fetch a user by email
+const getUserByEmail = async (email) => {
+  try {
+    const user = await User.findOne({ email });
+    return user;
+  } catch (error) {
+    throw new Error("Error fetching user: " + error.message);
+  }
 };
 
 module.exports = {
   createUser,
   getAllUsers,
-  signInUser
+  signInUser,
+  getUserByEmail
 };
 
 

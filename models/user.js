@@ -1,5 +1,6 @@
 const mongoose = require('mongoose');
-const bcrypt = require('bcryptjs');
+const Applicant = require('./applicant');
+const Recruiter = require('./recruiter');
 
 // User Schema definition
 const userSchema = new mongoose.Schema({
@@ -7,16 +8,12 @@ const userSchema = new mongoose.Schema({
     type: String,
     required: true,
     unique: true,
+    index: true,
     match: [/^\S+@\S+\.\S+$/, 'Please use a valid email address.']
-  },
-  passwordHash: {
-    type: String,
-    required: true,
   },
   role: {
     type: String,
     enum: ['Applicant', 'Recruiter', 'Moderator'],
-    required: true,
   },
   firstName: {
     type: String,
@@ -32,18 +29,10 @@ const userSchema = new mongoose.Schema({
   }
 });
 
-// Define the matchPassword method
-userSchema.methods.matchPassword = async function (enteredPassword) {
-  return await bcrypt.compare(enteredPassword, this.passwordHash);
-};
 
-userSchema.pre('save', async function (next) {
-  if (!this.isModified('passwordHash')) {
-    return next(); // If password is not modified, proceed to the next middleware
-  }
-
-  // Hash the password before saving it to the database
-  this.passwordHash = await bcrypt.hash(this.passwordHash, 10);
+userSchema.pre('remove', async function (next) {
+  await Applicant.deleteMany({ userId: this._id });
+  await Recruiter.deleteMany({ userId: this._id });
   next();
 });
 

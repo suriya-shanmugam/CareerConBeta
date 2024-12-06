@@ -16,6 +16,7 @@ const createApplicant = async (user_id,fullname,applicantData) => {
   try {
     return await newApplicant.save();
   } catch (error) {
+    console.log('Error creating applicant: ' + error.message);
     throw new Error('Error creating applicant: ' + error.message);
   }
 };

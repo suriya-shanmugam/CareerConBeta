@@ -10,6 +10,7 @@ const jobRoutes = require("./routes/jobRoutes");
 const companyRoutes = require('./routes/companyRoutes');
 const applicantRoutes = require('./routes/applicantRoutes');
 const blogRoutes = require('./routes/blogRoutes');
+const {errorHandler} = require('./middleware/errorMiddleware');
 
 
 //const companyConvoRoutes = require("./routes/companyConvoRoutes");
@@ -23,7 +24,7 @@ const { error } = require('winston');
 
 connectDB();
 const app = express();
-const PORT = process.env.PORT || 3000;
+const PORT = process.env.PORT || 8000;
 
 console.log(process.env.PORT)
 
@@ -47,7 +48,7 @@ app.use((req, res, next) => {
 app.use(express.json());
 app.use(express.urlencoded({ extended: true }));
 
-
+//app.use(protect);
 // Authentication route
 app.use('/api/v1/auth', authRoutes);
 
@@ -70,7 +71,7 @@ app.use('/api/v1/blogs', blogRoutes);
 
 //app.use('/api/v1/applicants/:id/feeds', applicantConvoRoutes);
 
-
+app.use(errorHandler);
 
 app.use((err, req, res, next) => {
   //console.error(err.message)

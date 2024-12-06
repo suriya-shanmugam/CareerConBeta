@@ -8,5 +8,7 @@ router.post('/', userController.createUser);
 // Route to get all users
 router.get('/', userController.getAllUsers);
 
+router.get('/user/:id', userController.getUserByEmail);
+
 module.exports = router;
 
