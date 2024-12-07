@@ -1,7 +1,5 @@
-const mongoose = require('mongoose');
 const Company = require('../models/company');
 const Applicant = require('../models/applicant');
-const Job = require('../models/job');
 const Recruiter = require('../models/recruiter');
 const JobService = require("../services/jobService");
 

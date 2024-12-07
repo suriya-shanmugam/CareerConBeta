@@ -10,16 +10,14 @@ const jobRoutes = require("./routes/jobRoutes");
 const companyRoutes = require('./routes/companyRoutes');
 const applicantRoutes = require('./routes/applicantRoutes');
 const blogRoutes = require('./routes/blogRoutes');
+const clearDataRoutes = require('./routes/clearDataRoutes');
 
 const { ChatGoogleGenerativeAI } = require('@langchain/google-genai');
 const { HarmBlockThreshold, HarmCategory } = require('@google/generative-ai');
 
 
 
-//const companyConvoRoutes = require("./routes/companyConvoRoutes");
-//const applicantConvoRoutes = require('./routes/applicantConvoRoutes');
-//const convoRoutes = require('./routes/convoRoutes');
-//const recruiterRoutes = require('./routes/recruiterRoutes');
+
 const userRoutes = require('./routes/userRoutes');
 
 
@@ -60,20 +58,12 @@ app.use("/api/v1/jobs", jobRoutes);
 app.use('/api/v1/users', userRoutes);
 
 app.use('/api/v1/companies', companyRoutes);
+
 app.use('/api/v1/applicants', applicantRoutes);
-
-//app.use('/api/v1/recruiters', recruiterRoutes);
-
-//app.use('/api/v1/conversations', convoRoutes);
 
 app.use('/api/v1/blogs', blogRoutes);
 
-//app.use("/api/v1/companies", companyConvoRoutes);
-//app.use('/api/v1/applicants', applicantConvoRoutes);
-
-
-//app.use('/api/v1/applicants/:id/feeds', applicantConvoRoutes);
-
+app.use('/api/v1', clearDataRoutes);
 
 // Google Generative AI Model Setup
 const model = new ChatGoogleGenerativeAI({

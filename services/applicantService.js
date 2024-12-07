@@ -1,22 +1,38 @@
 const Applicant = require('../models/applicant');
-const Company = require("../models/company"); // Assuming Company model is imported
-
-//const Applicant = require("../models/Applicant"); 
+const Company = require("../models/company");
 
 // Service to create a new applicant
-const createApplicant = async (user_id,fullname,applicantData) => {
-  // Create the new applicant document
+const createApplicant = async (userId, fullname, applicantData) => {
+  // Create the new applicant document with additional fields
   const newApplicant = new Applicant({
-    ...applicantData,
+    ...applicantData,  // This includes the new fields like professionalExperience, professionalSummary, etc.
     createdAt: new Date(),
-    userId : user_id,
-    name : fullname
+    userId: userId,
+    name: fullname,
   });
 
   try {
     return await newApplicant.save();
   } catch (error) {
     throw new Error('Error creating applicant: ' + error.message);
+  }
+};
+
+// Service to update an applicant's details
+const updateApplicant = async (applicantId, applicantData) => {
+  try {
+    // Find the applicant by ID and update with new data
+    const updatedApplicant = await Applicant.findByIdAndUpdate(applicantId, applicantData, {
+      new: true, // Return the updated document
+    });
+
+    if (!updatedApplicant) {
+      throw new Error('Applicant not found');
+    }
+
+    return updatedApplicant;
+  } catch (error) {
+    throw new Error('Error updating applicant: ' + error.message);
   }
 };
 
@@ -32,9 +48,10 @@ const getAllApplicants = async () => {
   }
 };
 
+// Service to get an applicant by ID with populated fields
 const getApplicantById = async (applicantId) => {
   try {
-    return await Applicant.findOne({ _id: applicantId }) // Filter by applicant's ID
+    return await Applicant.findById(applicantId)
       .populate('userId', 'email firstName lastName') // Populate user data
       .populate('appliedJobs', 'title location') // Populate job data
       .populate('followingCompanies', 'name industry'); // Populate company data
@@ -42,8 +59,6 @@ const getApplicantById = async (applicantId) => {
     throw new Error('Error fetching applicant: ' + error.message);
   }
 };
-
-
 
 // Follow another applicant
 const followApplicant = async (applicantId, targetApplicantId) => {
@@ -77,6 +92,7 @@ const followApplicant = async (applicantId, targetApplicantId) => {
   }
 };
 
+// Unfollow another applicant
 const unfollowApplicant = async (applicantId, targetApplicantId) => {
   try {
     // Ensure the applicant exists
@@ -109,14 +125,14 @@ const unfollowApplicant = async (applicantId, targetApplicantId) => {
   }
 };
 
-
+// Service to get applicants for a specific applicant (following status included)
 const getApplicantsForApplicant = async (applicantId) => {
   try {
     // Fetch the applicant's following applicants
     const applicant = await Applicant.findById(applicantId).populate('followingApplicants');
     
     // Fetch all applicants from the database
-    const applicants = await Applicant.find().populate('userId','-passwordHash');
+    const applicants = await Applicant.find().populate('userId', '-passwordHash');
 
     // Add `isFollowing` to each applicant based on the followingApplicants list
     const applicantsWithFollowingStatus = applicants.map(app => {
@@ -133,9 +149,7 @@ const getApplicantsForApplicant = async (applicantId) => {
   }
 };
 
-
-
-// Service to get companies for a specific applicant
+// Service to get companies for a specific applicant (following status included)
 const getCompaniesForApplicant = async (applicantId) => {
   try {
     // Fetch the applicant's following companies
@@ -159,9 +173,9 @@ const getCompaniesForApplicant = async (applicantId) => {
   }
 };
 
-
 module.exports = {
   createApplicant,
+  updateApplicant,
   getAllApplicants,
   getApplicantById,
   getCompaniesForApplicant,
