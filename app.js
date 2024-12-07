@@ -13,23 +13,16 @@ const blogRoutes = require('./routes/blogRoutes');
 const clearDataRoutes = require('./routes/clearDataRoutes');
 const credConfigRoutes = require('./routes/credConfigRoutes'); // Import routes
 
-const { ChatGoogleGenerativeAI } = require('@langchain/google-genai');
-const { HarmBlockThreshold, HarmCategory } = require('@google/generative-ai');
-
-
-
+// Import the new controller
+const { handleQuery } = require('./controllers/queryController'); 
 
 const userRoutes = require('./routes/userRoutes');
-
-
-const { error } = require('winston');
 
 connectDB();
 const app = express();
 const PORT = process.env.PORT || 3000;
 
-console.log(process.env.PORT)
-
+console.log(process.env.PORT);
 
 const corsOptions = {
   origin: 'http://localhost:3001',
@@ -38,18 +31,12 @@ app.use(cors(corsOptions));
 
 // Sample middleware function for logging and authentication
 app.use((req, res, next) => {
-  
-
   console.log(`${req.method} ${req.url}`);
-  //protect(req, res);
   next();
-
 });
-
 
 app.use(express.json());
 app.use(express.urlencoded({ extended: true }));
-
 
 // Authentication route
 app.use('/api/v1/auth', authRoutes);
@@ -67,60 +54,14 @@ app.use('/api/v1/blogs', blogRoutes);
 app.use('/api/v1', clearDataRoutes);
 app.use('/api/v1/credconfig', credConfigRoutes);
 
-// Google Generative AI Model Setup
-const model = new ChatGoogleGenerativeAI({
-  model: "gemini-pro",
-  maxOutputTokens: 2048,
-  safetySettings: [
-    {
-      category: HarmCategory.HARM_CATEGORY_HARASSMENT,
-      threshold: HarmBlockThreshold.BLOCK_LOW_AND_ABOVE,
-    },
-  ],
-});
-
-// Controller for generating a response from the model based on any query
-async function generateResponse(query) {
-  try {
-    const response = await model.invoke([
-      ["human", query]
-    ]);
-
-    return response.content;
-  } catch (error) {
-    console.error("Error generating response:", error);
-    throw new Error("Failed to generate response");
-  }
-}
-
-// Route to handle any query and respond with the AI's output
-app.post('/query', async (req, res) => {
-  const { query } = req.body;
-
-  if (!query) {
-    return res.status(400).json({ error: 'Query is required' });
-  }
-
-  try {
-    const aiResponse = await generateResponse(query);
-    return res.json({ response: aiResponse });
-  } catch (error) {
-    return res.status(500).json({ error: error.message });
-  }
-});
-
-
+// Use the controller for the /query route
+app.post('/query', handleQuery);
 
 app.use((err, req, res, next) => {
-  //console.error(err.message)
-  console.error(err)
+  console.error(err);
   res.status(500).send('Something went wrong!');
 });
-
 
 app.listen(PORT, () => {
   console.log(`Connected on port ${PORT}.....`);
 });
-
-
-

@@ -32,7 +32,51 @@ const getCredConfig = async () => {
   }
 };
 
+// Service to get the rabbiturl from the CredConfig document
+const getRabbitUrl = async () => {
+  try {
+    const config = await getCredConfig(); // Fetch the configuration document
+    return config.rabbiturl; // Return the rabbiturl field
+  } catch (error) {
+    throw new Error(`Error retrieving rabbiturl: ${error.message}`);
+  }
+};
+
+// Service to get the rabbitusername from the CredConfig document
+const getRabbitUsername = async () => {
+  try {
+    const config = await getCredConfig(); // Fetch the configuration document
+    return config.rabbitusername; // Return the rabbitusername field
+  } catch (error) {
+    throw new Error(`Error retrieving rabbitusername: ${error.message}`);
+  }
+};
+
+// Service to get the rabbitpassword from the CredConfig document
+const getRabbitPassword = async () => {
+  try {
+    const config = await getCredConfig(); // Fetch the configuration document
+    return config.rabbitpassword; // Return the rabbitpassword field
+  } catch (error) {
+    throw new Error(`Error retrieving rabbitpassword: ${error.message}`);
+  }
+};
+
+// Service to get the googleapi from the CredConfig document
+const getGoogleApi = async () => {
+  try {
+    const config = await getCredConfig(); // Fetch the configuration document
+    return config.googleapi; // Return the googleapi field
+  } catch (error) {
+    throw new Error(`Error retrieving googleapi: ${error.message}`);
+  }
+};
+
 module.exports = {
   createCredConfig,
-  getCredConfig
+  getCredConfig,
+  getRabbitUrl,
+  getRabbitUsername,
+  getRabbitPassword,
+  getGoogleApi,
 };

@@ -7,7 +7,7 @@ const router = express.Router();
 router.post('/', credConfigController.createCredConfig);
 
 // GET endpoint to get the first (and only) CredConfig
-router.get('/', credConfigController.getCredConfig); // Changed to just '/'
+//router.get('/', credConfigController.getCredConfig); // Changed to just '/'
 
 // Export routes
 module.exports = router;
