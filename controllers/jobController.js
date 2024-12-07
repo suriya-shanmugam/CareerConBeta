@@ -179,7 +179,7 @@ const analyzejob = async (req, res) => {
 
   
 
-  const genAI = new GoogleGenerativeAI("AIzaSyAE2I9yPV7lcc1jnFRjeMUR9u6P2Q-O6Ko");
+  const genAI = new GoogleGenerativeAI("");
 
   const schema = {
     description: "List of skills with categories and matches",
