@@ -1,6 +1,6 @@
 const jobService = require("../services/jobService");
 const applicantService = require("../services/applicantService");
-const jobRedisService = require("../services/jobRedisService");
+const jobRedisService = require("../services/commonRedisService");
 
 const { formatResponse } = require("../utils/helper");
 const Applicant = require("../models/applicant");

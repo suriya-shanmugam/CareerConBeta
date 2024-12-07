@@ -11,6 +11,7 @@ const companyRoutes = require('./routes/companyRoutes');
 const applicantRoutes = require('./routes/applicantRoutes');
 const blogRoutes = require('./routes/blogRoutes');
 const clearDataRoutes = require('./routes/clearDataRoutes');
+const credConfigRoutes = require('./routes/credConfigRoutes'); // Import routes
 
 const { ChatGoogleGenerativeAI } = require('@langchain/google-genai');
 const { HarmBlockThreshold, HarmCategory } = require('@google/generative-ai');
@@ -64,6 +65,7 @@ app.use('/api/v1/applicants', applicantRoutes);
 app.use('/api/v1/blogs', blogRoutes);
 
 app.use('/api/v1', clearDataRoutes);
+app.use('/api/v1/credconfig', credConfigRoutes);
 
 // Google Generative AI Model Setup
 const model = new ChatGoogleGenerativeAI({
