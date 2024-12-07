@@ -1,5 +1,3 @@
-// utils/rabbitmqService.js
-
 const amqp = require('amqplib');
 
 /**
@@ -7,7 +5,12 @@ const amqp = require('amqplib');
  */
 const publishEvent = async (event) => {
   try {
-    const connection = await amqp.connect('amqp://localhost');
+    // Use environment variable or default to localhost
+    
+    const rabbitmqUrl = process.env.RABBITMQ_URL || 'amqp://localhost';
+    
+
+    const connection = await amqp.connect(rabbitmqUrl);
     const channel = await connection.createChannel();
     
     const queue = 'events_queue'; // Define your event queue
