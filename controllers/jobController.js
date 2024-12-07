@@ -167,7 +167,7 @@ const analyzejob = async (req, res) => {
   </<JOB Description> 
   
   <Myskill>
-  ${"OS, Documentation"} 
+  "Python, Documentation, OS"
   </Myskill>
   
   
@@ -179,7 +179,7 @@ const analyzejob = async (req, res) => {
 
   
 
-  const genAI = new GoogleGenerativeAI("");
+  const genAI = new GoogleGenerativeAI("AIzaSyAE2I9yPV7lcc1jnFRjeMUR9u6P2Q-O6Ko");
 
   const schema = {
     description: "List of skills with categories and matches",

@@ -11,6 +11,10 @@ const companyRoutes = require('./routes/companyRoutes');
 const applicantRoutes = require('./routes/applicantRoutes');
 const blogRoutes = require('./routes/blogRoutes');
 
+const { ChatGoogleGenerativeAI } = require('@langchain/google-genai');
+const { HarmBlockThreshold, HarmCategory } = require('@google/generative-ai');
+
+
 
 //const companyConvoRoutes = require("./routes/companyConvoRoutes");
 //const applicantConvoRoutes = require('./routes/applicantConvoRoutes');
@@ -69,6 +73,49 @@ app.use('/api/v1/blogs', blogRoutes);
 
 
 //app.use('/api/v1/applicants/:id/feeds', applicantConvoRoutes);
+
+
+// Google Generative AI Model Setup
+const model = new ChatGoogleGenerativeAI({
+  model: "gemini-pro",
+  maxOutputTokens: 2048,
+  safetySettings: [
+    {
+      category: HarmCategory.HARM_CATEGORY_HARASSMENT,
+      threshold: HarmBlockThreshold.BLOCK_LOW_AND_ABOVE,
+    },
+  ],
+});
+
+// Controller for generating a response from the model based on any query
+async function generateResponse(query) {
+  try {
+    const response = await model.invoke([
+      ["human", query]
+    ]);
+
+    return response.content;
+  } catch (error) {
+    console.error("Error generating response:", error);
+    throw new Error("Failed to generate response");
+  }
+}
+
+// Route to handle any query and respond with the AI's output
+app.post('/query', async (req, res) => {
+  const { query } = req.body;
+
+  if (!query) {
+    return res.status(400).json({ error: 'Query is required' });
+  }
+
+  try {
+    const aiResponse = await generateResponse(query);
+    return res.json({ response: aiResponse });
+  } catch (error) {
+    return res.status(500).json({ error: error.message });
+  }
+});
 
 
 
