@@ -37,6 +37,7 @@ const getAllApplicants = async (req, res) => {
     const applicants = await applicantService.getAllApplicants();
     res.status(200).json(applicants);
   } catch (error) {
+    console.log("Error fetching applicants: " + error.message);
     res
       .status(500)
       .json({ message: "Error fetching applicants", error: error.message });
@@ -108,10 +109,12 @@ const getApplicantsForApplicant = async (req, res) => {
   const { applicantId } = req.params;
 
   try {
+    console.log("Applicant ID: " + applicantId);
     const applicants = await applicantService.getApplicantsForApplicant(applicantId);
     const response = formatResponse('success', 'Applicants fetched successfully', applicants)
     res.status(200).json(response);
   } catch (error) {
+    console.log("Error fetching applicants: " + error.message);
     res.status(500).json({ message: "Error fetching applicants", error: error.message });
   }
 };

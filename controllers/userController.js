@@ -109,12 +109,65 @@ const getUserByEmail = async (req, res) => {
     }
 
     const userResponse = {
-      id: user._id,
-      email: user.email,
       role: user.role,
+      email: user.email,
       firstName: user.firstName,
       lastName: user.lastName,
     };
+
+    let userId = user._id;  // Default to user._id in case neither Applicant nor Recruiter
+
+    // Handle different roles (Applicant vs Recruiter)
+    if (user.role === 'Recruiter') {
+      // Check if the recruiter already has a record, or create a new one
+      let recruiter = await Recruiter.findOne({ userId: user._id }).populate('companyId');
+      
+      if (!recruiter) {
+        // Create a new recruiter record if it doesn't exist
+        recruiter = new Recruiter({
+          userId: user._id,
+          companyId: req.body.companyId, // You should pass the companyId in the request body
+        });
+        await recruiter.save();
+      }
+
+      // Set the recruiterId (use the Recruiter's ID in the response)
+      userId = recruiter._id;
+
+      // Add company details to the response
+      if (recruiter && recruiter.companyId) {
+        const company = recruiter.companyId; // Already populated
+        userResponse.companyId = company._id;
+        userResponse.companyName = company.name;
+        userResponse.companyDescription = company.description;
+        userResponse.companyIndustry = company.industry;
+        userResponse.companyLocation = company.location;
+        userResponse.companyWebsite = company.website;
+      }
+
+    } else if (user.role === 'Applicant') {
+      // Check if the applicant already has a record, or create a new one
+      let applicant = await Applicant.findOne({ userId: user._id });
+
+      if (!applicant) {
+        // Create a new applicant record if it doesn't exist
+        applicant = new Applicant({
+          userId: user._id,
+        });
+        await applicant.save();
+      }
+
+      // Set the applicantId (use the Applicant's ID in the response)
+      userId = applicant._id;
+
+      // Add applicant details if needed
+      userResponse.resume = applicant.resume;
+      userResponse.phone = applicant.phone;
+      userResponse.skills = applicant.skills;
+    }
+
+    // Add the ID (applicantId or recruiterId) to the response
+    userResponse.id = userId;
 
     res.status(200).json({ userExists: true, user: userResponse });
   } catch (error) {

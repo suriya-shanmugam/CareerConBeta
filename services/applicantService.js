@@ -24,11 +24,14 @@ const createApplicant = async (user_id,fullname,applicantData) => {
 // Service to get all applicants with populated fields
 const getAllApplicants = async () => {
   try {
-    return await Applicant.find()
+    const response = await Applicant.find()
       .populate('userId', 'email firstName lastName') // Populate user data
       .populate('appliedJobs', 'title location') // Populate job data
       .populate('followingCompanies', 'name industry'); // Populate company data
+    console.log(response);
+    return response;
   } catch (error) {
+    console.log('Error fetching applicants: ' + error.message);
     throw new Error('Error fetching applicants: ' + error.message);
   }
 };
@@ -117,11 +120,15 @@ const getApplicantsForApplicant = async (applicantId) => {
     const applicant = await Applicant.findById(applicantId).populate('followingApplicants');
     
     // Fetch all applicants from the database
-    const applicants = await Applicant.find().populate('userId','-passwordHash');
-
+    const applicants = await Applicant.find().populate('userId');
+    console.log('Applicant: ' + applicant);
+    console.log('Applicants: ' + applicants);
     // Add `isFollowing` to each applicant based on the followingApplicants list
     const applicantsWithFollowingStatus = applicants.map(app => {
-      const isFollowing = applicant.followingApplicants.some(followedApplicant => followedApplicant._id.toString() === app._id.toString());
+      let isFollowing;
+      if(applicant.followingApplicants.length > 0){ 
+        isFollowing = applicant.followingApplicants.some(followedApplicant => followedApplicant._id.toString() === app._id.toString());
+      }
       return {
         ...app.toObject(),
         isFollowing, // Add isFollowing flag
@@ -130,6 +137,7 @@ const getApplicantsForApplicant = async (applicantId) => {
 
     return applicantsWithFollowingStatus;
   } catch (error) {
+    console.log('Error fetching applicants for applicant: ' + error.message); 
     throw new Error('Error fetching applicants for applicant: ' + error.message);
   }
 };
