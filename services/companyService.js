@@ -7,14 +7,6 @@ const JobService = require("../services/jobService");
 
 // Service to create a new company
 const createCompany = async (companyData) => {
-  // Check if the company already exists
-  
-  // Company name is unique
-  const existingCompany = await Company.findOne({ name: companyData.name });
-  if (existingCompany) {
-    throw new Error('Company already exists');
-  }
-
   // Create and save the new company
   const newCompany = new Company({
     ...companyData,
