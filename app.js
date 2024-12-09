@@ -25,9 +25,10 @@ const PORT = process.env.PORT || 3000;
 console.log(process.env.PORT);
 
 const corsOptions = {
-  origin: 'http://localhost:3001',
+  origin: '*', // Allows all domains
 };
 app.use(cors(corsOptions));
+
 
 // Sample middleware function for logging and authentication
 app.use((req, res, next) => {

@@ -13,7 +13,7 @@ const publishEvent = async (event) => {
     const password = await credConfigService.getRabbitPassword();
     const awsurl = await credConfigService.getRabbitUrl();
     const rabbitmqUrl = `amqps://${username}:${password}@${awsurl}`
-    console.log(rabbitmqUrl)
+    //console.log(rabbitmqUrl)
     //const rabbitmqUrl = process.env.RABBITMQ_URL || 'amqp://localhost';
     
 
