@@ -1,7 +1,6 @@
 const mongoose = require('mongoose');
 const { Schema } = mongoose;
 
-// Applicant Schema definition
 const applicantSchema = new Schema({
   name: {
     type: String,
@@ -14,11 +13,9 @@ const applicantSchema = new Schema({
   },
   resume: {
     type: String // Base64 encoded file
-    
   },
   phone: {
-    type: String,
-    match: [/^\d{3}-\d{3}-\d{4}$/, 'Please use a valid phone number format: XXX-XXX-XXXX']
+    type: String
   },
   address: {
     type: String
@@ -40,8 +37,44 @@ const applicantSchema = new Schema({
   }],
   followingApplicants: [{
     type: Schema.Types.ObjectId,
-    ref: 'Applicant', // Reference to the Applucant collection
+    ref: 'Applicant', // Reference to the Applicant collection
+  }],
+  professionalExperience: {
+    type: Number, // Number of years of professional experience
+  },
+  professionalSummary: {
+    type: String, // Rich text for professional summary (use a package for rich text if needed)
+  },
+  education: [{
+    collegeName: {
+      type: String,
+      required: true,
+    },
+    fromYear: {
+      type: Number,
+      required: true,
+    },
+    toYear: {
+      type: Number,
+      required: true,
+    }
+  }],
+  experience: [{
+    companyName: {
+      type: String,
+      required: true,
+    },
+    fromYear: {
+      type: Number,
+      required: true,
+    },
+    toYear: {
+      type: Number,
+      required: true,
+    }
   }],
 });
 
-module.exports = mongoose.model('Applicant', applicantSchema);
+const Applicant = mongoose.model('Applicant', applicantSchema);
+
+module.exports = Applicant;

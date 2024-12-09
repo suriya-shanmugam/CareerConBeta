@@ -5,6 +5,7 @@
   },
   "dependencies": {
     "@google/generative-ai": "^0.21.0",
+    "@langchain/google-genai": "^0.1.5",
     "amqplib": "^0.10.5",
     "bcryptjs": "^2.4.3",
     "cors": "^2.8.5",

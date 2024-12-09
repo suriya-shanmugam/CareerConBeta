@@ -1,13 +1,23 @@
-// utils/rabbitmqService.js
-
 const amqp = require('amqplib');
+const credConfigService = require('../services/credConfigService');
 
 /**
  * Connect to RabbitMQ and publish an event
  */
 const publishEvent = async (event) => {
   try {
-    const connection = await amqp.connect('amqp://localhost');
+    // Use environment variable or default to localhost
+    //amqps://{username}:{password}@{rabbitmqurl}
+    
+    const username = await credConfigService.getRabbitUsername();
+    const password = await credConfigService.getRabbitPassword();
+    const awsurl = await credConfigService.getRabbitUrl();
+    const rabbitmqUrl = `amqps://${username}:${password}@${awsurl}`
+    console.log(rabbitmqUrl)
+    //const rabbitmqUrl = process.env.RABBITMQ_URL || 'amqp://localhost';
+    
+
+    const connection = await amqp.connect(rabbitmqUrl);
     const channel = await connection.createChannel();
     
     const queue = 'events_queue'; // Define your event queue

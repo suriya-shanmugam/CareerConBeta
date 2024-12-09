@@ -4,6 +4,8 @@ const Blog = require("../models/blog");
 const Comment = require("../models/comment");
 const Like = require("../models/like");
 
+const blogRedisService = require("./commonRedisService");
+
 /*const mapper = function mapDataArray(sourceArray) {
   return sourceArray.map((source) => ({
     _id: source._id, // Keep the same _id
@@ -74,14 +76,39 @@ const createBlogByCompany = async (blogData, companyId) => {
       authorId: companyId, // The blog author is the company
     });
 
-    // Save the blog
+    // Save the blog first
     await newBlog.save();
+
+    const blogToStoreInRedis = {
+      _id: newBlog._id,
+      title: newBlog.title,
+      content: newBlog.content,
+      authorType: newBlog.authorType,
+      authorId: {
+        _id: company._id.toString(), // Use company _id
+        name: company.name, // Directly use company name
+      },
+      tags: newBlog.tags,
+      createdAt: newBlog.createdAt,
+      updatedAt: newBlog.updatedAt,
+    };
+
+    // Push the new blog to Redis
+    try {
+      await blogRedisService.pushBlogToRedis(companyId, blogToStoreInRedis);
+    } catch (cacheError) {
+      console.error("Error pushing blog to Redis:", cacheError.message);
+      // Handle the cache error gracefully (you can log it or continue without caching)
+    }
 
     return newBlog;
   } catch (error) {
     throw new Error(`Error creating blog by Company: ${error.message}`);
   }
 };
+
+
+
 
 /**
  * Fetch blogs written by a specific Applicant and populate the user info
@@ -163,218 +190,7 @@ const getBlogsByCompany = async (companyId) => {
   }
 };
 
-/**
- * Service to fetch blogs from followed companies, followed applicants, and the applicant's own blogs
- * @param {String} applicantId - The ID of the applicant whose followed entities' and own blogs we want to fetch
- * @returns {Promise<Array>} - Combined list of blogs from followed companies, followed applicants, and the applicant's own blogs
- */
-/* const getBlogsFromFollowedEntities = async (applicantId) => {
-    try {
-      // Step 1: Find the applicant's following companies and applicants
-      const applicant = await Applicant.findById(applicantId)
-        .populate("followingCompanies") // Populate following companies
-        .populate("followingApplicants"); // Populate following applicants
-  
-      // Check if applicant is null or undefined
-      if (!applicant) {
-        throw new Error("Applicant not found");
-      }
-  
-      // Step 2: Get an array of company IDs and applicant IDs from the applicant's followings
-      const followedCompanyIds = Array.isArray(applicant.followingCompanies) 
-        ? applicant.followingCompanies.map((company) => company._id)
-        : []; // Ensure it's an array, fallback to an empty array if not
-  
-      const followedApplicantIds = Array.isArray(applicant.followingApplicants) 
-        ? applicant.followingApplicants.map((applicant) => applicant._id)
-        : []; // Ensure it's an array, fallback to an empty array if not
-  
-      // Step 3: Fetch blogs for the applicant's own blogs
-      const ownBlogs = await Blog.find({
-        authorType: "Applicant",
-        authorId: applicantId, // Fetch only the applicant's own blogs
-      })
-      .populate("authorId", "name") // Populate company info (name, industry, location, website)
-      .sort({ createdAt: -1 }); // Optional: sort by createdAt in descending order
-  
-      // Step 4: Fetch blogs for followed companies
-      const companyBlogs = followedCompanyIds.length > 0 
-        ? await Blog.find({
-            authorType: "Company",
-            authorId: { $in: followedCompanyIds }, // Fetch blogs from followed companies
-          })
-          .populate("authorId", "name") // Populate company info
-          .sort({ createdAt: -1 }) // Sort by most recent
-        : []; // If no followed companies, return an empty array
-  
-      // Step 5: Fetch blogs for followed applicants
-      const applicantBlogs = followedApplicantIds.length > 0 
-        ? await Blog.find({
-            authorType: "Applicant",
-            authorId: { $in: followedApplicantIds }, // Fetch blogs from followed applicants
-          })
-          .populate("authorId", "name") // Populate company info (name, industry, location, website)
-          .sort({ createdAt: -1 }) // Optional: sort by createdAt in descending order
-        : []; // If no followed applicants, return an empty array
-  
-      // Step 6: Combine the blogs from own blogs, followed companies, and followed applicants
-      let allBlogs = [
-        ...ownBlogs,
-        ...companyBlogs,
-        ...applicantBlogs,
-      ];
-      
-      const blogsWithLikesStatus = await Promise.all(
-        allBlogs.map(async (blog) => {
-          // Convert the blog to a plain JavaScript object
-          const blogObj = blog.toObject(); 
-  
-          // Check if the applicant has liked the blog
-          const like = await Like.findOne({
-            blogId: blog._id,
-            authorType: blog.authorType,
-            authorId: applicantId,
-          });
-  
-          // Add the `likedByUser` field
-          blogObj.likedByUser = like ? true : false;
-  
-          return blogObj; // Return the updated blog object
-        })
-      );
 
-      //console.log(blogsWithLikesStatus);
-
-      // Step 7: Sort combined blogs by creation date (most recent first)
-      blogsWithLikesStatus.sort((a, b) => new Date(b.createdAt) - new Date(a.createdAt));
-  
-      return blogsWithLikesStatus;
-    } catch (err) {
-      throw new Error(
-        "Error fetching blogs from followed entities: " + err.message
-      );
-    }
-  };
-  */
-
-/*const getBlogsFromFollowedEntities = async (
-  applicantId,
-  cursor = null,
-  limit = 10
-) => {
-  try {
-    // Step 1: Find the applicant's following companies and applicants
-    const applicant = await Applicant.findById(applicantId)
-      .populate("followingCompanies") // Populate following companies
-      .populate("followingApplicants"); // Populate following applicants
-
-    if (!applicant) {
-      throw new Error("Applicant not found");
-    }
-
-    // Step 2: Get an array of company IDs and applicant IDs from the applicant's followings
-    const followedCompanyIds = Array.isArray(applicant.followingCompanies)
-      ? applicant.followingCompanies.map((company) => company._id)
-      : [];
-
-    const followedApplicantIds = Array.isArray(applicant.followingApplicants)
-      ? applicant.followingApplicants.map((applicant) => applicant._id)
-      : [];
-
-    // Step 3: Construct the query filters for pagination (only use the cursor if provided)
-    const paginationFilter = cursor
-      ? { createdAt: { $lt: new Date(cursor) } }
-      : {};
-
-    // Step 4: Fetch blogs for the applicant's own blogs first
-    const ownBlogs = await Blog.find({
-      authorType: "Applicant",
-      authorId: applicantId, // Fetch only the applicant's own blogs
-      ...paginationFilter, // Apply pagination filter
-    })
-      .populate("authorId", "name") // Populate author info
-      .sort({ createdAt: -1 }) // Sort by most recent
-      .limit(limit); // Limit to specified number
-
-    // If own blogs don't breach the limit, continue with the next category
-    let blogs = [...ownBlogs];
-
-    // Step 5: If there's still space for more blogs, fetch blogs for followed companies
-    if (blogs.length < limit) {
-      const remainingLimit = limit - blogs.length;
-
-      const companyBlogs =
-        followedCompanyIds.length > 0
-          ? await Blog.find({
-              authorType: "Company",
-              authorId: { $in: followedCompanyIds }, // Fetch blogs from followed companies
-              ...paginationFilter, // Apply pagination filter
-            })
-              .populate("authorId", "name") // Populate company info
-              .sort({ createdAt: -1 }) // Sort by most recent
-              .limit(remainingLimit) // Limit to remaining blogs to stay under the limit
-          : [];
-
-      blogs = [...blogs, ...companyBlogs]; // Add company blogs to the result
-    }
-
-    // Step 6: If there's still space for more blogs, fetch blogs for followed applicants
-    if (blogs.length < limit) {
-      const remainingLimit = limit - blogs.length;
-
-      const applicantBlogs =
-        followedApplicantIds.length > 0
-          ? await Blog.find({
-              authorType: "Applicant",
-              authorId: { $in: followedApplicantIds }, // Fetch blogs from followed applicants
-              ...paginationFilter, // Apply pagination filter
-            })
-              .populate("authorId", "name") // Populate applicant info
-              .sort({ createdAt: -1 }) // Sort by most recent
-              .limit(remainingLimit) // Limit to remaining blogs to stay under the limit
-          : [];
-
-      blogs = [...blogs, ...applicantBlogs]; // Add applicant blogs to the result
-    }
-
-    // Step 7: Fetch and add the like status for each blog
-    const blogsWithLikesStatus = await Promise.all(
-      blogs.map(async (blog) => {
-        const blogObj = blog.toObject();
-
-        // Check if the applicant has liked the blog
-        const like = await Like.findOne({
-          blogId: blog._id,
-          authorType: blog.authorType,
-          authorId: applicantId,
-        });
-
-        // Add the `likedByUser` field
-        blogObj.likedByUser = like ? true : false;
-
-        return blogObj; // Return the updated blog object
-      })
-    );
-
-    // Step 8: Sort the combined blogs by creation date (most recent first)
-    blogsWithLikesStatus.sort(
-      (a, b) => new Date(b.createdAt) - new Date(a.createdAt)
-    );
-
-    // Step 9: Return the blogs with pagination information
-    return {
-      blogs: blogsWithLikesStatus,
-      nextCursor:
-        blogsWithLikesStatus.length === limit
-          ? blogsWithLikesStatus[blogsWithLikesStatus.length - 1].createdAt
-          : null,
-    };
-  } catch (err) {
-    throw new Error(
-      "Error fetching blogs from followed entities: " + err.message
-    );
-  }
-};*/
 
 const getBlogsFromFollowedEntities = async (
   applicantId,
@@ -405,7 +221,9 @@ const getBlogsFromFollowedEntities = async (
       ? { createdAt: { $lt: new Date(cursor) } }
       : {};
 
-    // Helper function to fetch blogs with cursor logic
+    
+    
+     // Helper function to fetch blogs with cursor logic
     const fetchBlogs = async (filter, remainingLimit) => {
       return await Blog.find(filter)
         .populate("authorId", "name") // Populate author info
@@ -431,6 +249,16 @@ const getBlogsFromFollowedEntities = async (
       };
       companyBlogs = await fetchBlogs(companyBlogsFilter, 10);
     }
+
+
+    try {
+      const cachecompanyblogs = await blogRedisService.fetchBlogsLessThanCursorForMultipleCompanies(followedCompanyIds, cursor);
+      //console.log(cachecompanyblogs);
+    } catch (cacheError) {
+      console.error("Error pushing blog to Redis:", cacheError.message);
+      // Handle the cache error gracefully (you can log it or continue without caching)
+    }
+    
 
     // Step 6: Fetch up to 10 blogs from followed applicants
     let applicantBlogs = [];
