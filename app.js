@@ -102,7 +102,7 @@ async function generateResponse(query) {
 }
 
 // Route to handle any query and respond with the AI's output
-app.post('/query', async (req, res) => {
+app.post('/api/v1/query', async (req, res) => {
   const { query } = req.body;
 
   if (!query) {

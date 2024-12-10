@@ -12,7 +12,6 @@ services:
       - RABBITMQ_URL=amqp://rabbitmq
       - REDIS_HOST=redis://redis
       - REDIS_PORT=6379
-      - JWT_SECRET=varayovarayo
     depends_on:
       - mongo
       - rabbitmq
