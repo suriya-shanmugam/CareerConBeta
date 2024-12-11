@@ -1,3 +1,4 @@
+/*
 const { createClient } = require('@redis/client');
 require('dotenv').config(); // Load environment variables from .env file
 
@@ -65,3 +66,4 @@ const jobRedisService = {
 };
 
 module.exports = jobRedisService;
+*/

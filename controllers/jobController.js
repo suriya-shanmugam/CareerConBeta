@@ -1,8 +1,10 @@
 const jobService = require("../services/jobService");
 const applicantService = require("../services/applicantService");
-const jobRedisService = require("../services/jobRedisService");
+const jobRedisService = require("../services/commonRedisService");
 
 const { formatResponse } = require("../utils/helper");
+const credConfigService = require('../services/credConfigService');
+
 const Applicant = require("../models/applicant");
 
 // Controller to handle getting all jobs
@@ -179,7 +181,9 @@ const analyzejob = async (req, res) => {
 
   
 
-  const genAI = new GoogleGenerativeAI("AIzaSyCvq5qk3nbip5kZkVyYAGDg9gAx115h9iY");
+  const googleApiKey = await credConfigService.getGoogleApi();
+  
+  const genAI = new GoogleGenerativeAI(googleApiKey);
 
   const schema = {
     description: "List of skills with categories and matches",

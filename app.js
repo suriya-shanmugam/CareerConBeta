@@ -10,47 +10,34 @@ const jobRoutes = require("./routes/jobRoutes");
 const companyRoutes = require('./routes/companyRoutes');
 const applicantRoutes = require('./routes/applicantRoutes');
 const blogRoutes = require('./routes/blogRoutes');
+const clearDataRoutes = require('./routes/clearDataRoutes');
+const credConfigRoutes = require('./routes/credConfigRoutes'); // Import routes
 
-const { ChatGoogleGenerativeAI } = require('@langchain/google-genai');
-const { HarmBlockThreshold, HarmCategory } = require('@google/generative-ai');
+// Import the new controller
+const { handleQuery } = require('./controllers/queryController'); 
 
-
-
-//const companyConvoRoutes = require("./routes/companyConvoRoutes");
-//const applicantConvoRoutes = require('./routes/applicantConvoRoutes');
-//const convoRoutes = require('./routes/convoRoutes');
-//const recruiterRoutes = require('./routes/recruiterRoutes');
 const userRoutes = require('./routes/userRoutes');
-
-
-const { error } = require('winston');
 
 connectDB();
 const app = express();
 const PORT = process.env.PORT || 3000;
 
-console.log(process.env.PORT)
-
+console.log(process.env.PORT);
 
 const corsOptions = {
-  origin: 'http://localhost:3001',
+  origin: '*', // Allows all domains
 };
 app.use(cors(corsOptions));
 
+
 // Sample middleware function for logging and authentication
 app.use((req, res, next) => {
-  
-
   console.log(`${req.method} ${req.url}`);
-  //protect(req, res);
   next();
-
 });
-
 
 app.use(express.json());
 app.use(express.urlencoded({ extended: true }));
-
 
 // Authentication route
 app.use('/api/v1/auth', authRoutes);
@@ -60,11 +47,8 @@ app.use("/api/v1/jobs", jobRoutes);
 app.use('/api/v1/users', userRoutes);
 
 app.use('/api/v1/companies', companyRoutes);
+
 app.use('/api/v1/applicants', applicantRoutes);
-
-//app.use('/api/v1/recruiters', recruiterRoutes);
-
-//app.use('/api/v1/conversations', convoRoutes);
 
 app.use('/api/v1/blogs', blogRoutes);
 
@@ -74,6 +58,11 @@ app.use('/api/v1/blogs', blogRoutes);
 
 //app.use('/api/v1/applicants/:id/feeds', applicantConvoRoutes);
 
+app.use('/api/v1', clearDataRoutes);
+app.use('/api/v1/credconfig', credConfigRoutes);
+
+// Use the controller for the /query route
+app.post('/query', handleQuery);
 
 // Google Generative AI Model Setup
 const model = new ChatGoogleGenerativeAI({
@@ -102,7 +91,7 @@ async function generateResponse(query) {
 }
 
 // Route to handle any query and respond with the AI's output
-app.post('/api/v1/query', async (req, res) => {
+app.post('/query', async (req, res) => {
   const { query } = req.body;
 
   if (!query) {
@@ -120,15 +109,10 @@ app.post('/api/v1/query', async (req, res) => {
 
 
 app.use((err, req, res, next) => {
-  //console.error(err.message)
-  console.error(err)
+  console.error(err);
   res.status(500).send('Something went wrong!');
 });
-
 
 app.listen(PORT, () => {
   console.log(`Connected on port ${PORT}.....`);
 });
-
-
-
